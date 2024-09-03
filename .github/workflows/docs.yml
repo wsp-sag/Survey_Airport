@@ -1,8 +1,7 @@
 name: Publish documents
 on:
   push:
-    branches: 
-    -data_model
+    branches: [data_model]
 jobs:
   build:
     name: Deploy docs to GitHub Pages
