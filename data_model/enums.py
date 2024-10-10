@@ -6,9 +6,14 @@ class InterviewLocation(IntEnum):
     """
     Integer Mapping for interview locations
     """
-    PLACEHOLDER_1 = 1
-    PLACEHOLDER_2 = 2
-    PLACEHOLDER_3 = 3
+    TERMINAL_1 = 1
+    TERMINAL_2 = 2
+    ONBOARD_992 = 3
+    ONBOARD_FLYER = 4
+    RENTAL_CENTER = 5
+    PASSENGER_PARKING = 6
+    EMPLOYEE_PARKING = 7
+    OTHER_SPECIFY = 98
 
 
 class InboundOutbound(IntEnum):
@@ -28,6 +33,16 @@ class Type(IntEnum):
     PASSENGER = 1
     EMPLOYEE = 2
     OTHER_SPECIFY = 98
+
+
+class PassengerType(IntEnum):
+    """
+    Integer Mapping for type of passenger
+    """
+
+    ARRIVING = 1
+    DEPARTING = 2
+    CONNECTING = 3
 
 
 class ResidentVisitorGeneral(IntEnum):
@@ -51,6 +66,8 @@ class ResidentVisitor(IntEnum):
     OTHER_STATE_US = 6
     OTHER_STATE_MEXICO = 7
     NONE_OF_THE_ABOVE = 8
+    OTHER = 98
+    REFUSED = 99
 
 
 class Country(IntEnum):
@@ -539,7 +556,12 @@ class SanBuildings(IntEnum):
     RENTAL_CAR_CENTER = 8
     RECEIVING_DISTRIBUTION_CENTER = 9 
     SIGNATURE_FLIGHT_SUPPORT = 10
+    FACILITIES_MAINTENANCE = 11
+    FBO = 12
+    MENZIES = 13
+    FAA = 14
     OTHER_SPECIFY = 98
+    REFUSED = 99
 
 
 class Employers(IntEnum):
@@ -547,71 +569,82 @@ class Employers(IntEnum):
     Integer mapping for employers
 
     """
-    AIR_CANADA = 1
-    ALASKA_AIRLINES = 2
-    ALLEGIANT_AIR = 3
-    AMERICAN_AIRLINES = 4
-    APRICOT_LANE = 5
-    ARTISAN_MARKET = 6
-    BAGGAGE_CARTS_SMARTE_CARTE = 7
-    BANKERS_HILL_BAR_RESTAURANT = 8
-    BE_RELAX_SPA = 9
-    BEAUDEVIN_WINE_BAR = 10
-    BREEZE = 11
-    BRIGHTON_COLLECTIBLES = 12
-    BRITISH_AIRWAYS = 13
-    BROOKS_BROTHERS = 14
-    BUBBLES = 15
-    BURGER_KING = 16
-    CALIFORNIA_PIZZA_KITCHEN = 17
-    CAMDEN_FOOD_CO = 18
-    CNBC_NEWS_SAN_DIEGO = 19
-    CURRENCY_EXCHANGE_ICE_CURRENCY_SERVICES = 20
-    DELTA_AIRLINES = 21
-    DISCOVER_SAN_DIEGO = 22
-    DUTY_FREE_AMERICAS = 23
-    EINSTEIN_BROS_BAGELS = 24
-    ELEGANT_DESSERTS = 25
-    FRONTIER_AIRLINES = 26
-    GASLAMP_QUARTER_NEWS = 27
-    HAWAIIAN_AIRLINES = 28
-    HUDSON_NEWS = 29
-    INMOTION_ENTERTAINMENT = 30
-    JACK_IN_THE_BOX = 31
-    JAPAN_AIRLINES = 32
-    JETBLUE = 33
-    LUFTHANSA = 34
-    PANDA_EXPRESS = 35
-    PANIKKIN_COFFEE_TEA = 36
-    PEETS_COFFEE = 37
-    PGA_TOUR_GRILL = 38
-    PHILS_BBQ = 39
-    PRADO_AT_THE_AIRPORT = 40
-    QDOBA_MEXICAN_EATS = 41
-    RED_MANGO = 42
-    RYAN_BROS_COFFEE = 43
-    SAFFRON_THAI = 44
-    SAN_DIEGO_BAY_WINE_SPIRITS = 45
-    SAN_DIEGO_COUNTY_REGIONAL_AIRPORT_AUTHORITY = 46
-    SAN_DIEGO_MAGAZINE = 47
-    SEES_CANDIES = 48
-    SHOE_SHINE_SERVICE = 49
-    SOUTHWEST_AIRLINES = 50
-    SPIRIT = 51
-    STARBUCKS = 52
-    STELLAR_NEWS_EXPRESS = 53
-    STONE_BREWING = 54
-    SUNCOUNTY_AIRLINES = 55
-    SUNGLASS_HUT = 56
-    TECH_ON_THE_GO = 57
-    THE_COUNTER_CUSTOM_BURGERS = 58
-    TOMMYVS_PIZZERIA = 59
-    TRANSPORTATION_SECURITY_ADMINISTRATION_TSA = 60
-    US_CUSTOMS_AND_BORDER_PROTECTION = 61
-    UNITED_AIRLINES = 62
-    URBAN_CRAVE = 63
-    WESTJET = 64
-    OTHER_SPECIFY = 98
+    AIR_CANADA = 1	
+    ALASKA_AIRLINES = 2	
+    ALLEGIANT_AIR = 3	
+    AMERICAN_AIRLINES = 4	
+    ARTISAN_MARKET = 5	
+    ASIAN_KITCHEN = 6	
+    ASPIRE_LOUNGE = 7	
+    BANKERS_HILL_BAR_AND_MARKET = 8	
+    BAY_BOOKS_OF_CORONADO = 9	
+    BE_RELAX_SPA = 10	
+    BEAUDEVIN_VINE_AND_TAPAS_BAR = 11	
+    BRITISH_AIRWAYS = 12	
+    BROOKSTONE = 13	
+    BUBBLES_SEAFOOD_AND_WINE_BAR = 14	
+    CALIFORNIA_PIZZA_KITCHEN = 15	
+    CAMDEN_FOOD_CO = 16	
+    CIAO_GOURMET_MARKET = 17	
+    CNBC_EXPRESS = 18	
+    CNBC_NEWS_SAN_DIEGO = 19	
+    DARK_HORSE_COFFEE_ROASTERS = 20	
+    DELTA_AIRLINES = 21	
+    DELTA_SKY_CLUB = 22	
+    DISCOVER_SAN_DIEGO = 23	
+    EINSTEIN_BROS_BAGELS = 24	
+    ELEGANT_DESSERTS = 25	
+    FRONTIER_AIRLINES = 26	
+    GASLAMP_MARKETPLACE = 27	
+    HAWAIIAN_AIRLINES = 28	
+    HUDSON_NEWS = 29	
+    INMOTION_ENTERTAINMENT = 30	
+    JACK_IN_THE_BOX = 31	
+    JAPAN_AIRLINES = 32	
+    JETBLUE = 33	
+    JETBOX = 34	
+    JETBOX_MARKET = 35	
+    KUSI_NEWS = 36	
+    LINDBERGH_FIELD_NEWS = 37	
+    LUFTHANSA = 38	
+    OLD_TOWN_NEWS_AND_MARKET = 39	
+    PACIFICA_BREEZE_CAFE = 40	
+    PANDA_EXPRESS = 41	
+    PANNIKIN_COFFEE_AND_TEA = 42	
+    PEETS_COFFEE_AND_TEA = 43	
+    PGA_TOUR_GRILL = 44	
+    PGA_TOUR_SHOP = 45	
+    PHILS_BBQ = 46	
+    PRADO_AT_THE_AIRPORT = 47	
+    QDOBA_MEXICAN_GRILL = 48	
+    RED_MANGO = 49	
+    RIP_CURL = 50	
+    SAN_LIFE_MARKET = 51	
+    SAND_NEWS = 52	
+    SKY_FREE_SHOP = 53	
+    SOUNDBALANCE = 54	
+    SOUTHWEST_AIRLINES = 55	
+    SPIRIT = 56	
+    STARBUCKS = 57	
+    STELLAR_NEWS_EXPRESS = 58	
+    STONE_BREWING_COMPANY = 59	
+    SUNCOUNTY_AIRLINES = 60	
+    SUNGLASS_HUT = 61	
+    SWAROVSKI = 62	
+    TECH_ON_THE_GO = 63	
+    THE_BEACH_HOUSE = 64	
+    THE_COUNTER_CUSTOM_BUILT_BURGERS = 65	
+    TOMMY_VS_PIZZERIA = 66	
+    TRANSPORTATION_SECURITY_ADMINISTRATION_TSA = 67	
+    UNITED_AIRLINES = 68	
+    UNITED_CLUB = 69	
+    UNITED_SERVICE_ORGANIZATIONS = 70	
+    URBAN_CRAVE = 71	
+    US_CUSTOMS_AND_BORDER_PROTECTION = 72	
+    US_NEWS_AND_WORLD_REPORT = 73	
+    WARWICKS_OF_LA_JOLLA = 74	
+    WESTJET = 75	
+    OTHER_SEPCIFY = 98	
 
 
 class Occupations(IntEnum):
@@ -634,13 +667,14 @@ class Occupations(IntEnum):
     TSA = 12
     LAW_ENFORCEMENT = 13
     GENERAL_AND_OPERATIONS_MANAGERS = 14
-    PROGRAM_AND_PROJECT_MANAGERS = 21
-    RETAIL_RESTAURANT = 15
-    CONSTRUCTION = 16
-    OTHER_LABORERS = 17
-    OTHER_CUSTOMER_SUPPORT = 18
-    OTHER_ADMIN_SUPPORT = 19
-    OTHER_SPECIFY = 20
+    PROGRAM_AND_PROJECT_MANAGERS = 15
+    RETAIL_RESTAURANT = 16
+    CONSTRUCTION = 17
+    OTHER_LABORERS = 18
+    OTHER_CUSTOMER_SUPPORT = 19
+    OTHER_ADMIN_SUPPORT = 20
+    OTHER_SPECIFY = 98
+    REFUSED = 99
 
 
 class HoursWorked(IntEnum):
@@ -658,6 +692,8 @@ class HoursWorked(IntEnum):
     SIXTY_ONE_TO_SEVENTY = 8
     SEVENTY_ONE_TO_EIGHTY = 9
     MORE_THAN_EIGHTY = 10
+    OTHER = 98
+    REFUSED = 99
 
 
 class CommuteDays(IntEnum):
@@ -672,6 +708,8 @@ class CommuteDays(IntEnum):
     FIVE = 5
     SIX = 6
     SEVEN = 7
+    OTHER = 98
+    REFUSED = 99
 
 
 class ShiftTime(Enum):
@@ -737,42 +775,68 @@ class ShiftTime(Enum):
     TWENTY_THREE_THIRTY_TO_MIDNIGHT = TimeRange("2330", "0000")
 
 
-class TravelMode(IntEnum):
+class TravelMode(Enum):
     """
-    Integer mapping for modes of travel
+    Mapping for all the modes used in the survey
     """
-    WALK = 1
-    WHEELCHAIR_OR_OTHER_MOBILITY_DEVICE = 2
-    ELECTRIC_BIKESHARE = 3
-    NON_ELECTRIC_BIKESHARE = 4
-    E_SCOOTER_SHARE = 5
-    PERSONAL_ELECTRIC_BICYCLE = 5
-    PERSONAL_NON_ELECTRIC_BICYCLE = 6
-    PERSONAL_E_SCOOTER = 7
-    TAXI = 8
-    UBER_LYFT = 9
-    CAR_SERVICE_BLACK_CAR_LIMO_EXECUTIVE_CAR = 10
-    DROPPED_OFF_BY_CAR_BY_FRIEND_FAMILY = 11
-    DRIVE_ALONE_AND_PARK = 12
-    RIDE_WITH_OTHERS_AND_PARK = 13
-    PUBLIC_BUS_MTS_992 = 14
-    AIRPORT_FLYER_OLD_TOWN = 15
-    COASTER = 16
-    SPRINTER = 17
-    PACIFIC_SURFLINER = 18
-    MTS_RED_TROLLEY = 19
-    PUBLIC_BUS = 20
-    OTHER_PUBLIC_TRANSIT = 21
-    CHARTERED_BUS_TOUR_BUS = 22
-    EMPLOYEE_SHUTTLE = 23
-    RENTAL_CAR_AND_DROPPED_IT_OFF_AT_RENTAL_AGENCY = 24
-    RENTAL_CAR_AND_PARKED_IT = 25
-    HOTEL_SHUTTLE_VAN = 26
-    OTHER_SHARED_RIDE_VAN_SERVICE = 27
-    OTHER_SPECIFY = 98
- 
+    WALK = (1, "Walk")
+    WHEELCHAIR_OR_MOBILITY_DEVICE = (2, "Wheelchair or other mobility device")
+    BICYCLE_ELECTRIC_BIKESHARE = (3, "Bicycle: electric bikeshare")
+    BICYCLE_NON_ELECTRIC_BIKESHARE = (4, "Bicycle: non-electric bikeshare")
+    E_SCOOTER_SHARED = (5, "E-scooter: shared")
+    BICYCLE_PERSONAL_ELECTRIC = (6, "Bicycle: personal electric bicycle")
+    BICYCLE_PERSONAL_NON_ELECTRIC = (7, "Bicycle: personal non-electric bicycle")
+    E_SCOOTER_PERSONAL = (8, "E-scooter: personal")
+    TAXI = (9, "Taxi")
+    UBER_LYFT = (10, "Uber/Lyft")
+    CAR_SERVICE_BLACK_LIMO = (11, "Car service/black car/limo/executive car")
+    DROPPED_OFF_BY_FAMILY_FRIEND = (12, "Dropped off by car by family/friend")
+    DROVE_ALONE_AND_PARKED = (13, "Drove alone and parked")
+    DROVE_WITH_OTHERS_AND_PARKED = (14, "Drove with others and parked")
+    MTS_ROUTE_992 = (15, "MTS Route 992")
+    AIRPORT_FLYER_SHUTTLE = (16, "Airport Flyer Shuttle")
+    CHARTERED_TOUR_BUS = (17, "Chartered tour bus")
+    EMPLOYEE_SHUTTLE = (18, "Employee shuttle")
+    RENTAL_CAR_DROPPED_OFF = (19, "Rental car: Dropped off at rental agency")
+    RENTAL_CAR_PARKED = (20, "Rental car: parked rental car")
+    HOTEL_SHUTTLE_VAN = (21, "Hotel shuttle van")
+    OTHER_SHARED_VAN = (22, "Other shared van (please specify)")
+    PICKED_UP_BY_FAMILY_FRIEND = (23, "Picked up by car by family/friend")
+    GET_IN_PARKED_VEHICLE_AND_DRIVE_ALONE = (24, "Get in a parked vehicle and drive alone")
+    GET_IN_PARKED_VEHICLE_AND_DRIVE_WITH_OTHERS = (25, "Get in a parked vehicle and drive with others")
+    GET_IN_PARKED_VEHICLE_AND_RIDE_WITH_OTHER_TRAVELERS = (26, "Get in a parked vehicle and ride with other traveler(s)")
+    RENTAL_CAR_PICKED_UP = (27, "Rental car: Picked up at rental agency")
+    RENTAL_CAR_GET_IN_PARKED = (28, "Rental car: get in a parked rental car")
+    RODE_WITH_OTHER_TRAVELERS_AND_PARKED = (29, "Rode with other traveler(s) and parked")
+    OTHER_PUBLIC_TRANSIT = (30, "Other public transit")
+    OTHER = (98, "Other")
+    REFUSED_NO_ANSWER = (99, "Refused/No Answer")
 
-class CommuteModeDecision(IntEnum):
+
+class BusRoutes(Enum):
+    """
+    Enum Mappings for MTS Bus Routes
+    """
+    MTS_4_12TH_IMPERIAL_TROLLEY_LOMITA_VILLAGE = "MTS_1_4"
+    MTS_AIR_OLD_TOWN_TO_AIRPORT_SHUTTLE = "MTS_1_AIR"
+    MTS_7_DOWNTOWN_SAN_DIEGO_UNIVERSITY_COLLEGE = "MTS_1_7"
+    MTS_41_FASHION_VALLEY_UCSD = "MTS_1_41"
+    MTS_964_MIRA_MESA_ALLIANT_UNIVERSITY_VIA_MCTS = "MTS_1_964"
+    MTS_8_OLD_TOWN_BALBOA_AV_TC = "MTS_1_8"
+    MTS_992_AIRPORT_DOWNTOWN_SHUTTLE = "MTS_1_992"
+    MTS_1_FASHION_VALLEY_LA_MESA = "MTS_1_1"
+    MTS_709_H_ST_TRANSIT_CENTER_OTAY_RANCH_TOWN_CENTER = "MTS_1_709"
+    MTS_901_IRIS_TRANSIT_CENTER_DOWNTOWN_SAN_DIEGO = "MTS_1_901"
+    MTS_BLUE_SAN_YSIDRO_UTC = "MTS_1_Blue"
+    MTS_5_DOWNTOWN_SAN_DIEGO_EUCLID_TRANSIT_CENTER = "MTS_1_5"
+    MTS_235_DOWNTOWN_ESCONDIDO_TRANSIT_CENTER = "MTS_1_235"
+    MTS_933_IRIS_TC_LOOP_IMPERIAL_BEACH_COUNTERCLOCK = "MTS_1_933"
+    MTS_88_OLD_TOWN_FASHION_VALLEY = "MTS_1_88"
+    OTHER = 98
+    # Many more to be added here, ask ETC
+
+
+class ModeDecision(IntEnum):
     """
     Integer mapping for decisions to choose a commute mode
     """
@@ -804,11 +868,15 @@ class ParkingLocation(IntEnum):
     """
     Integer Mapping for Airport parking locations
     """
-
-    PLACEHOLDER_1 = 1
-    PLACEHOLDER_2 = 2
-    PLACEHOLDER_3 = 3
-
+    TERM1_PARKING_PLAZA = 1
+    TERM2_PARKING_PLAZA = 2
+    TERM1_CURBSIDE_VALET = 3
+    TERM2_CURBSIDE_VALET = 4
+    OFF_AIRPORT_PARKING = 5
+    EMPLOYEE_LOT_3665_ADMIRAL_BOLAND_WAY = 6
+    ADMIN_BUILDING_LOT_2417_MCCAIN_ROAD = 7
+    OTHER = 98
+    REFUSED = 99
 
 class ParkingCostFrequency(IntEnum):
     """
@@ -819,6 +887,7 @@ class ParkingCostFrequency(IntEnum):
     DAILY = 3
     HOURLY = 4
     OTHER_SEPCIFY = 98
+    REFUSED = 99
 
 
 class ParkingReimbursement(IntEnum):
@@ -831,6 +900,19 @@ class ParkingReimbursement(IntEnum):
     DONT_KNOW = 4
 
 
+class CarAvailability(IntEnum):
+    """
+    Integer mapping for car availability
+    """
+
+    CAR_AVAILABLE = 1
+    DONT_HAVE_CAR = 2
+    CAR_UNAVAILABLE = 3
+    DONT_DRIVE = 4
+    OTHER = 98
+    REFUSED = 99
+
+
 class SanFlightFrequency(IntEnum):
     """
     Integer mapping for flight frequency
@@ -841,6 +923,7 @@ class SanFlightFrequency(IntEnum):
     ELEVEN_TO_TWENTY_PER_YEAR = 4
     TWENTY_ONE_OR_MORE_PER_YEAR = 5
     NEVER = 6
+    ALWAYS = 7 #only relevant for access mode use
 
 
 class ReasonsNoTransit(IntEnum):
@@ -866,15 +949,27 @@ class TransitUseFrequency(IntEnum):
     """
     Integer mapping for weekly transit use frequency
     """
-    NONE = 1
-    ONE_DAY = 2
-    TWO_DAYS = 3
-    THREE_DAYS = 4
-    FOUR_DAYS = 5
-    FIVE_DAYS = 6
-    SIX_DAYS = 7
-    SEVEN_DAYS = 8
+    NONE = 0
+    ONE_DAY = 1
+    TWO_DAYS = 2
+    THREE_DAYS = 3
+    FOUR_DAYS = 4
+    FIVE_DAYS = 5
+    SIX_DAYS = 6
+    SEVEN_DAYS = 7
 
+class OtherTransitUseFrequency(IntEnum):
+    """
+    Integer Mapping for other aiport's transit use frequency
+    """
+    ONE_TIME = 1
+    TWO_TIMES = 2
+    THREE_TIMES = 3
+    FOUR_TIMES = 4
+    MORE_THAN_FIVE_TIMES = 5
+    NEVER = 6
+    OTHER = 98
+    REFUSED = 99
 
 
 class Age(IntEnum):
@@ -894,20 +989,23 @@ class Age(IntEnum):
     AGE_60_64 = 10
     AGE_65_74 = 11
     AGE_75_OR_MORE = 12
-    PREFER_NOT_TO_SAY = 99
+    PREFER_NOT_TO_SAY = 13
+    OTHER = 98
+    REFUSED = 99
+
 
 
 class Gender(IntEnum):
     """
     Integer mapping for gender
     """
-
-    FEMALE = 1
-    MALE = 2
+    MALE = 1
+    FEMALE = 2
     TRANSGENDER = 3
     NON_BINARY_THIRD_GENDER = 4
-    OTHER_SPECIFY = 5
-    PREFER_NOT_TO_SAY = 99
+    PREFER_NOT_TO_SAY = 5
+    OTHER_SPECIFY = 98
+    REFUSED = 99
 
 
 
@@ -926,6 +1024,8 @@ class HouseholdSize(IntEnum):
     EIGHT = 8
     NINE = 9
     TEN_OR_MORE = 10
+    OTHER = 98
+    REFUSED = 99
 
 
 class HouseholdVehicles(IntEnum):
@@ -942,6 +1042,8 @@ class HouseholdVehicles(IntEnum):
     SIX = 6
     SEVEN = 7
     EIGHT_OR_MORE = 8
+    OTHER = 98
+    REFUSED = 99
 
 
 class HouseholdIncome(IntEnum):
@@ -962,7 +1064,9 @@ class HouseholdIncome(IntEnum):
     BETWEEN_75K_100K = 11
     BETWEEN_100K_150K = 12
     ABOVE_150K = 13
-    PREFER_NOT_TO_SAY = 99  
+    PREFER_NOT_TO_SAY = 14  
+    OTHER = 98
+    REFUSED = 99
 
 
 class HouseholdWorkers(IntEnum):
@@ -981,17 +1085,8 @@ class HouseholdWorkers(IntEnum):
     EIGHT = 8
     NINE = 9
     TEN_OR_MORE = 10
-
-    
-
-class EnglishProficiency(IntEnum):
-    """
-    Integer mapping for respondent's level of English proficiency
-    """
-    VERY_WELL = 1
-    WELL = 2
-    NOT_VERY_WELL = 3
-    NOT_AT_ALL = 4
+    OTHER = 98
+    REFUSED = 99
 
 
 class NumTransfers(IntEnum): 
@@ -1003,4 +1098,14 @@ class NumTransfers(IntEnum):
     TWO = 2
     THREE = 3
     FOUR_OR_MORE = 4 
+    OTHER = 98
+    REFUSED = 99
 
+class SurveyLanguage(Enum):
+    """
+    Mapping for Survey Language
+    """
+    ENGLISH = "ENGLISH"
+    SPANISH = "SPANI"
+    OTHER = 98
+    REFUSED = 99
