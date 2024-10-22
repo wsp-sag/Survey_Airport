@@ -66,7 +66,7 @@ class Trip(PydanticModel):
     Whether the trip is inbound to the airport or outbound from the airport.
     """
 
-    origin_activity_type: NoneOrNanString[Union[e.ActivityType, str]] = Field(
+    origin_activity_type: NoneOrNanString[e.ActivityType] = Field(
         ..., description="Activity type at the origin of the trip to the airport"
     )
     """
@@ -122,7 +122,7 @@ class Trip(PydanticModel):
     Longitude coordinate of the origin address for the trip to the airport.
     """
 
-    destination_activity_type: NoneOrNanString[Union[e.ActivityType, str]] = Field(
+    destination_activity_type: NoneOrNanString[e.ActivityType] = Field(
         ...,
         description="Activity type at the destination of the trip from the airport",
     )
@@ -137,6 +137,19 @@ class Trip(PydanticModel):
     """
     Activity type (other) at the destination of the trip from the airport.
     """
+
+    @computed_field(
+        return_type = e.ActivityType,
+        description="Activity type prior to traveling to the airport (for inbound) or activity traveling to do next (for outbound).",
+    )
+    @property
+    def non_airport_activity_type(cls):
+        """
+        Activity type prior to traveling to the airport (for inbound) or activity traveling to do next (for outbound).
+        """
+        if cls.inbound_or_outbound == e.InboundOutbound.INBOUND_TO_AIRPORT:
+            return cls.origin_activity_type
+        return cls.destination_activity_type
 
     destination_name: NoneOrNanString[str] = Field(
     ..., description="Place name of the destination from the airport"
@@ -187,7 +200,7 @@ class Trip(PydanticModel):
     Main Transit mode to/from airport.
     """
 
-    main_mode: NoneOrNanString[Union[e.TravelMode, str]] = Field(
+    main_mode: NoneOrNanString[e.TravelMode] = Field(
         ..., description = "Main Mode to/from airport"
     )
     """
@@ -1093,6 +1106,31 @@ class AirPassenger(Respondent):
     Where is the respondent flying from/flying to.
     """
 
+    @computed_field(
+        return_type = str,
+        description = "Previous flight origin for an arriving passenger",
+    )
+    @property
+    def previous_flight_origin(cls):
+        """
+        Previous flight origin for an arriving passenger
+        """
+        if cls.passenger_type == e.PassengerType.ARRIVING:
+            return cls.previous_or_next_airport
+        
+        
+    @computed_field(
+        return_type = str,
+        description = "Next Flight Destination for a departing passenger",
+    )
+    @property
+    def next_flight_destination(cls):
+        """
+        Next Flight Destination for a departing passenger
+        """
+        if cls.passenger_type == e.PassengerType.DEPARTING:
+            return cls.previous_or_next_airport
+
     # next_flight_destination: NoneOrNanString[str] = Field(
     #     ..., description = "Destination of the flight for departing passengers"
     # )
@@ -1127,6 +1165,35 @@ class AirPassenger(Respondent):
     """
     True if the passenger did not use/is not using any connecting flights in their journey
     """
+
+
+    @computed_field(
+        return_type = bool,
+        description = "True if the previous flight origin was original and not a layover",
+    )
+    @property
+    def is_original_origin(cls):
+        """
+        True if the previous flight origin was original and not a layover
+        """
+        if cls.passenger_type == e.PassengerType.ARRIVING:
+            return cls.not_using_connecting
+        
+        
+    @computed_field(
+        return_type = bool,
+        description = "True if the next flight destination is final and not a layover",
+    )
+    @property
+    def is_final_destination(cls):
+        """
+        True if the next flight destination is final and not a layover
+        """
+        if cls.passenger_type == e.PassengerType.DEPARTING:
+            return cls.not_using_connecting
+        
+
+
     # is_final_destination: NoneOrNanString[bool] = Field(
     #     ..., description = "Whether respondent's next destination is their final destination"
     # )
@@ -1232,7 +1299,7 @@ class AirPassenger(Respondent):
     Number of nights the arriving air passengers will be in the San Diego Region.
     """
 
-    party_size_flight: NoneOrNanString[Union[e.PartySize, str]] = Field(
+    party_size_flight: NoneOrNanString[e.PartySize] = Field(
         ..., description = "Size of the party flying with the respondent (count includes the respondent)"
     )
     """
@@ -1246,7 +1313,7 @@ class AirPassenger(Respondent):
     Whether flying party all traveled to airport together
     """
 
-    party_size_ground_access: NoneOrNanString[Union[e.PartySize, str]] = Field(
+    party_size_ground_access: NoneOrNanString[e.PartySize] = Field(
         ..., description = "Size of ground access travel party"
     )
     """
