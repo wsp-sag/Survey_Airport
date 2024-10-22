@@ -32,7 +32,9 @@ class Type(IntEnum):
 
     PASSENGER = 1
     EMPLOYEE = 2
-    OTHER_SPECIFY = 98
+    NEITHER = 3
+    OTHER = 98
+    UNNKNOWN = 99
 
 
 class PassengerType(IntEnum):
@@ -49,9 +51,29 @@ class ResidentVisitorGeneral(IntEnum):
     """
     Integer Mapping for the respondent if they are resident, visitor or neither. First option if departing, second if arriving
     """
-    GOING_HOME_OR_VISITING = 1
-    LEAVING_HOME_OR_COMING_HOME = 2
-    NEITHER = 3
+    GOING_HOME = 1
+    LEAVING_HOME = 2
+    VISITING = 3
+    COMING_HOME = 4
+    NEITHER = 5
+    OTHER = 98
+    REFUSED = 99
+
+class ResidentVisitorFollowup(IntEnum):
+    """
+    Integer Mapping for the followup question to respondent if they are neither a visitor nor a resident - if they are visiting SAN Diego
+    """
+    VISITING_THE_REGION = 1
+    LIVE_OUTSIDE_REGION_TRAVELED_TO_AIRPORT = 2
+
+
+# class SameCommuteMode(IntEnum):
+#     """
+#     Integer mapping for response options if the employee used the same commute mode to the airport
+#     """
+#     YES = 1
+#     NO = 0
+#     OTHER = 98
 
 
 class ResidentVisitor(IntEnum):
@@ -514,23 +536,24 @@ class TravelDuration(IntEnum):
     """
     Integer Mapping for travel duration (nights away or nights visited)
     """
-    NONE = 1
-    ONE = 2
-    TWO = 3
-    THREE = 4
-    FOUR = 5
-    FIVE = 6
-    SIX = 7
-    SEVEN = 8
-    EIGHT_TO_TEN = 9
-    ELEVEN_TO_FOURTEEN = 10
-    MORE_THAN_FOURTEEN = 11
+    NONE = 0
+    ONE = 1
+    TWO = 2
+    THREE = 3
+    FOUR = 4
+    FIVE = 5
+    SIX = 6
+    SEVEN = 7
+    EIGHT_TO_TEN = 8
+    ELEVEN_TO_FOURTEEN = 9
+    MORE_THAN_FOURTEEN = 10
 
 
 class PartySize(IntEnum):
     """
     Integer mapping for number of persons in travel party
     """
+    NONE = 0
     ONE = 1  
     TWO = 2
     THREE = 3
@@ -538,6 +561,8 @@ class PartySize(IntEnum):
     FIVE = 5
     SIX = 6
     SEVEN_OR_MORE = 7
+    OTHER = 98
+    REFUSED = 99
 
 
 class SanBuildings(IntEnum):
@@ -775,42 +800,79 @@ class ShiftTime(Enum):
     TWENTY_THREE_THIRTY_TO_MIDNIGHT = TimeRange("2330", "0000")
 
 
-class TravelMode(Enum):
+# class TravelMode(Enum):
+#     """
+#     Mapping for all the modes used in the survey
+#     """
+#     WALK = (1, "Walk")
+#     WHEELCHAIR_OR_MOBILITY_DEVICE = (2, "Wheelchair or other mobility device")
+#     BICYCLE_ELECTRIC_BIKESHARE = (3, "Bicycle: electric bikeshare")
+#     BICYCLE_NON_ELECTRIC_BIKESHARE = (4, "Bicycle: non-electric bikeshare")
+#     E_SCOOTER_SHARED = (5, "E-scooter: shared")
+#     BICYCLE_PERSONAL_ELECTRIC = (6, "Bicycle: personal electric bicycle")
+#     BICYCLE_PERSONAL_NON_ELECTRIC = (7, "Bicycle: personal non-electric bicycle")
+#     E_SCOOTER_PERSONAL = (8, "E-scooter: personal")
+#     TAXI = (9, "Taxi")
+#     UBER_LYFT = (10, "Uber/Lyft")
+#     CAR_SERVICE_BLACK_LIMO = (11, "Car service/black car/limo/executive car")
+#     DROPPED_OFF_BY_FAMILY_FRIEND = (12, "Dropped off by car by family/friend")
+#     DROVE_ALONE_AND_PARKED = (13, "Drove alone and parked")
+#     DROVE_WITH_OTHERS_AND_PARKED = (14, "Drove with others and parked")
+#     MTS_ROUTE_992 = (15, "MTS Route 992")
+#     AIRPORT_FLYER_SHUTTLE = (16, "Airport Flyer Shuttle")
+#     CHARTERED_TOUR_BUS = (17, "Chartered tour bus")
+#     EMPLOYEE_SHUTTLE = (18, "Employee shuttle")
+#     RENTAL_CAR_DROPPED_OFF = (19, "Rental car: Dropped off at rental agency")
+#     RENTAL_CAR_PARKED = (20, "Rental car: parked rental car")
+#     HOTEL_SHUTTLE_VAN = (21, "Hotel shuttle van")
+#     OTHER_SHARED_VAN = (22, "Other shared van (please specify)")
+#     PICKED_UP_BY_FAMILY_FRIEND = (23, "Picked up by car by family/friend")
+#     GET_IN_PARKED_VEHICLE_AND_DRIVE_ALONE = (24, "Get in a parked vehicle and drive alone")
+#     GET_IN_PARKED_VEHICLE_AND_DRIVE_WITH_OTHERS = (25, "Get in a parked vehicle and drive with others")
+#     GET_IN_PARKED_VEHICLE_AND_RIDE_WITH_OTHER_TRAVELERS = (26, "Get in a parked vehicle and ride with other traveler(s)")
+#     RENTAL_CAR_PICKED_UP = (27, "Rental car: Picked up at rental agency")
+#     RENTAL_CAR_GET_IN_PARKED = (28, "Rental car: get in a parked rental car")
+#     RODE_WITH_OTHER_TRAVELERS_AND_PARKED = (29, "Rode with other traveler(s) and parked")
+#     OTHER_PUBLIC_TRANSIT = (30, "Other public transit")
+#     OTHER = (98, "Other")
+#     REFUSED_NO_ANSWER = (99, "Refused/No Answer")
+
+class TravelMode(IntEnum):
     """
     Mapping for all the modes used in the survey
     """
-    WALK = (1, "Walk")
-    WHEELCHAIR_OR_MOBILITY_DEVICE = (2, "Wheelchair or other mobility device")
-    BICYCLE_ELECTRIC_BIKESHARE = (3, "Bicycle: electric bikeshare")
-    BICYCLE_NON_ELECTRIC_BIKESHARE = (4, "Bicycle: non-electric bikeshare")
-    E_SCOOTER_SHARED = (5, "E-scooter: shared")
-    BICYCLE_PERSONAL_ELECTRIC = (6, "Bicycle: personal electric bicycle")
-    BICYCLE_PERSONAL_NON_ELECTRIC = (7, "Bicycle: personal non-electric bicycle")
-    E_SCOOTER_PERSONAL = (8, "E-scooter: personal")
-    TAXI = (9, "Taxi")
-    UBER_LYFT = (10, "Uber/Lyft")
-    CAR_SERVICE_BLACK_LIMO = (11, "Car service/black car/limo/executive car")
-    DROPPED_OFF_BY_FAMILY_FRIEND = (12, "Dropped off by car by family/friend")
-    DROVE_ALONE_AND_PARKED = (13, "Drove alone and parked")
-    DROVE_WITH_OTHERS_AND_PARKED = (14, "Drove with others and parked")
-    MTS_ROUTE_992 = (15, "MTS Route 992")
-    AIRPORT_FLYER_SHUTTLE = (16, "Airport Flyer Shuttle")
-    CHARTERED_TOUR_BUS = (17, "Chartered tour bus")
-    EMPLOYEE_SHUTTLE = (18, "Employee shuttle")
-    RENTAL_CAR_DROPPED_OFF = (19, "Rental car: Dropped off at rental agency")
-    RENTAL_CAR_PARKED = (20, "Rental car: parked rental car")
-    HOTEL_SHUTTLE_VAN = (21, "Hotel shuttle van")
-    OTHER_SHARED_VAN = (22, "Other shared van (please specify)")
-    PICKED_UP_BY_FAMILY_FRIEND = (23, "Picked up by car by family/friend")
-    GET_IN_PARKED_VEHICLE_AND_DRIVE_ALONE = (24, "Get in a parked vehicle and drive alone")
-    GET_IN_PARKED_VEHICLE_AND_DRIVE_WITH_OTHERS = (25, "Get in a parked vehicle and drive with others")
-    GET_IN_PARKED_VEHICLE_AND_RIDE_WITH_OTHER_TRAVELERS = (26, "Get in a parked vehicle and ride with other traveler(s)")
-    RENTAL_CAR_PICKED_UP = (27, "Rental car: Picked up at rental agency")
-    RENTAL_CAR_GET_IN_PARKED = (28, "Rental car: get in a parked rental car")
-    RODE_WITH_OTHER_TRAVELERS_AND_PARKED = (29, "Rode with other traveler(s) and parked")
-    OTHER_PUBLIC_TRANSIT = (30, "Other public transit")
-    OTHER = (98, "Other")
-    REFUSED_NO_ANSWER = (99, "Refused/No Answer")
+    WALK = 1
+    WHEELCHAIR_OR_MOBILITY_DEVICE = 2
+    BICYCLE_ELECTRIC_BIKESHARE = 3
+    BICYCLE_NON_ELECTRIC_BIKESHARE = 4
+    E_SCOOTER_SHARED = 5
+    BICYCLE_PERSONAL_ELECTRIC = 6
+    BICYCLE_PERSONAL_NON_ELECTRIC = 7
+    E_SCOOTER_PERSONAL = 8
+    TAXI = 9
+    UBER_LYFT = 10
+    CAR_SERVICE_BLACK_LIMO = 11
+    DROPPED_OFF_BY_FAMILY_FRIEND = 12
+    DROVE_ALONE_AND_PARKED = 13
+    DROVE_WITH_OTHERS_AND_PARKED = 14
+    MTS_ROUTE_992 = 15
+    AIRPORT_FLYER_SHUTTLE = 16
+    CHARTERED_TOUR_BUS = 17
+    EMPLOYEE_SHUTTLE = 18
+    RENTAL_CAR_DROPPED_OFF = 19
+    RENTAL_CAR_PARKED = 20
+    HOTEL_SHUTTLE_VAN = 21
+    OTHER_SHARED_VAN = 22
+    PICKED_UP_BY_FAMILY_FRIEND = 23
+    GET_IN_PARKED_VEHICLE_AND_DRIVE_ALONE = 24
+    GET_IN_PARKED_VEHICLE_AND_DRIVE_WITH_OTHERS = 25
+    GET_IN_PARKED_VEHICLE_AND_RIDE_WITH_OTHER_TRAVELERS = 26
+    RENTAL_CAR_PICKED_UP = 27
+    RENTAL_CAR_GET_IN_PARKED = 28
+    RODE_WITH_OTHER_TRAVELERS_AND_PARKED = 29
+    OTHER_PUBLIC_TRANSIT = 30
+    OTHER = 98
+    REFUSED_NO_ANSWER = 99
 
 
 class BusRoutes(Enum):
@@ -859,10 +921,11 @@ class ActivityType(IntEnum):
     USUAL_WORKPLACE = 1
     HOME = 2
     HOTEL = 3
-    OTHER_BUSINESS = 4 
-    OTHER_RESIDENCE = 5 
-    OTHER = 6 
-
+    CONVENTION_CENTER = 4
+    OTHER_BUSINESS = 5
+    OTHER_RESIDENCE = 6 
+    OTHER = 98
+    REFUSED = 99
 
 class ParkingLocation(IntEnum):
     """
@@ -958,10 +1021,11 @@ class TransitUseFrequency(IntEnum):
     SIX_DAYS = 6
     SEVEN_DAYS = 7
 
-class OtherTransitUseFrequency(IntEnum):
+class OtherFlightAndTransitUseFrequency(IntEnum):
     """
-    Integer Mapping for other aiport's transit use frequency
+    Integer Mapping for other aiport's flight and transit use frequency
     """
+    NONE = 0
     ONE_TIME = 1
     TWO_TIMES = 2
     THREE_TIMES = 3
@@ -1107,5 +1171,11 @@ class SurveyLanguage(Enum):
     """
     ENGLISH = "ENGLISH"
     SPANISH = "SPANI"
+    OTHER = 98
+    REFUSED = 99
+
+class YesNoType(IntEnum):
+    YES = 1
+    NO = 2
     OTHER = 98
     REFUSED = 99

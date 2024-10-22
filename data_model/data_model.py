@@ -13,11 +13,14 @@ from pydantic_extra_types.coordinate import Coordinate, Latitude, Longitude
 import enums as e
 
 
-def coerce_nan_to_none(x: Any) -> Any:
-    
-    
-    if isnan(x):
-        return None
+def coerce_nan_to_none(x: Any, field_name: str) -> Any:
+    try:
+        if isinstance(x, (float, int)) and isnan(x):
+            return None
+    except TypeError as e:
+        # Print or log the problematic field and its value
+        print(f"Error in field '{field_name}' with value: {x}")
+        raise e  # Re-raise the exception for debugging
     return x
 
 
@@ -226,56 +229,56 @@ class Trip(PydanticModel):
     Number of transit transfers for the inbound trip to the airport
     """
 
-    to_airport_transit_route_1: NoneOrNanString[e.BusRoutes] = Field(
+    to_airport_transit_route_1: NoneOrNanString[str] = Field(
         ..., description="Name of the First Transit Route to the airport"
     )
     """
     Name of the First Transit Route to the airport
     """
 
-    to_airport_transit_route_1_other: Optional[str] = Field(
+    to_airport_transit_route_1_other: NoneOrNanString[str] = Field(
         ..., description="Other First Transit Route to the airport"
     )
     """
     Other First Transit Route to the airport
     """
 
-    to_airport_transit_route_2: NoneOrNanString[e.BusRoutes] = Field(
+    to_airport_transit_route_2: NoneOrNanString[str] = Field(
         ..., description="Name of the Second Transit Route to the airport"
     )
     """
     Name of the Second Transit Route to the airport
     """
 
-    to_airport_transit_route_2_other: Optional[str] = Field(
+    to_airport_transit_route_2_other: NoneOrNanString[str] = Field(
         ..., description="Other Second Transit Route to the airport"
     )
     """
     Other Second Transit Route to the airport
     """
 
-    to_airport_transit_route_3: NoneOrNanString[e.BusRoutes] = Field(
+    to_airport_transit_route_3: NoneOrNanString[str] = Field(
         ..., description="Name of the Third Transit Route to the airport"
     )
     """
     Name of the Third Transit Route to the airport
     """
 
-    to_airport_transit_route_3_other: Optional[str] = Field(
+    to_airport_transit_route_3_other: NoneOrNanString[str] = Field(
         ..., description="Other Third Transit Route to the airport"
     )
     """
     Other Third Transit Route to the airport
     """
 
-    to_airport_transit_route_4: NoneOrNanString[e.BusRoutes] = Field(
+    to_airport_transit_route_4: NoneOrNanString[str] = Field(
         ..., description="Name of the Fourth Transit Route to the airport"
     )
     """
     Name of the Fourth Transit Route to the airport
     """
 
-    to_airport_transit_route_4_other: Optional[str] = Field(
+    to_airport_transit_route_4_other: NoneOrNanString[str] = Field(
         ..., description="Other Fourth Transit Route to the airport"
     )
     """
@@ -358,56 +361,56 @@ class Trip(PydanticModel):
     Number of transit transfers for the inbound trip.
     """
 
-    from_airport_transit_route_1: NoneOrNanString[e.BusRoutes] = Field(
+    from_airport_transit_route_1: NoneOrNanString[str] = Field(
         ..., description="Name of the First Transit Route from the airport"
     )
     """
     Name of the First Transit Route from the airport
     """
 
-    from_airport_transit_route_1_other: Optional[str] = Field(
+    from_airport_transit_route_1_other: NoneOrNanString[str] = Field(
         ..., description="Other First Transit Route from the airport"
     )
     """
     Other First Transit Route from the airport
     """
 
-    from_airport_transit_route_2: NoneOrNanString[e.BusRoutes] = Field(
+    from_airport_transit_route_2: NoneOrNanString[str] = Field(
         ..., description="Name of the Second Transit Route from the airport"
     )
     """
     Name of the Second Transit Route from the airport
     """
 
-    from_airport_transit_route_2_other: Optional[str] = Field(
+    from_airport_transit_route_2_other: NoneOrNanString[str] = Field(
         ..., description="Other Second Transit Route from the airport"
     )
     """
     Other Second Transit Route from the airport
     """
 
-    from_airport_transit_route_3: NoneOrNanString[e.BusRoutes] = Field(
+    from_airport_transit_route_3: NoneOrNanString[str] = Field(
         ..., description="Name of the Third Transit Route from the airport"
     )
     """
     Name of the Third Transit Route from the airport
     """
 
-    from_airport_transit_route_3_other: Optional[str] = Field(
+    from_airport_transit_route_3_other: NoneOrNanString[str] = Field(
         ..., description="Other Third Transit Route from the airport"
     )
     """
     Other Third Transit Route from the airport
     """
 
-    from_airport_transit_route_4: NoneOrNanString[e.BusRoutes] = Field(
+    from_airport_transit_route_4: NoneOrNanString[str] = Field(
         ..., description="Name of the Fourth Transit Route from the airport"
     )
     """
     Name of the Fourth Transit Route from the airport
     """
 
-    from_airport_transit_route_4_other: Optional[str] = Field(
+    from_airport_transit_route_4_other: NoneOrNanString[str] = Field(
         ..., description="Other Fourth Transit Route from the airport"
     )
     """
@@ -496,7 +499,7 @@ class Respondent(PydanticModel):
     Unique identifier for the respondent.
     """
 
-    datetime_completed: NoneOrNanString[datetime] = Field(
+    date_completed: NoneOrNanString[datetime] = Field(
         ..., description = "Date and time when respondent completed the survey"
     )
     """
@@ -546,7 +549,7 @@ class Respondent(PydanticModel):
     Whether a resident or a visitor of the San deigo airport service area.
     """
 
-    resident_visitor_followup: NoneOrNanString[bool] = Field(
+    resident_visitor_followup: NoneOrNanString[e.ResidentVisitorFollowup] = Field(
         ...,
         description="If neither a resident or a visitor, whether the respondent is visiting San Diego",
     )
@@ -579,12 +582,12 @@ class Respondent(PydanticModel):
     """
 
  #Add new here
-    home_location_address: NoneOrNanString[str] =  Field(
-        ..., description = "Street Address of the home location of the respondent"
-    )
-    """
-    Street Address of the home location of the respondent
-    """
+    # home_location_address: NoneOrNanString[str] =  Field(
+    #     ..., description = "Street Address of the home location of the respondent"
+    # )
+    # """
+    # Street Address of the home location of the respondent
+    # """
 
     home_location_city: NoneOrNanString[str] =  Field(
         ..., description = "City of the home location of the respondent"
@@ -735,7 +738,7 @@ class Respondent(PydanticModel):
     Number of workers in the respondent's household.
     """
 
-    sp_invitation: NoneOrNanString[bool] = Field(
+    sp_invitation: NoneOrNanString[e.YesNoType] = Field(
         ..., description = "Whether the respondent chose to participate in the SP Survey"
     )
 
@@ -836,7 +839,7 @@ class Employee(Respondent):
     Name of  respondent's employer.
     """
 
-    employer: NoneOrNanString[str] = Field(
+    employer_other: NoneOrNanString[str] = Field(
         ..., description = "Name (not listed) of respondent's employer"
     )
     """
@@ -901,7 +904,7 @@ class Employee(Respondent):
     Reverse commute mode for the employee (other, not listed)
     """
 
-    same_commute_mode: NoneOrNanString[bool] = Field(
+    same_commute_mode: NoneOrNanString[e.YesNoType] = Field(
         ..., description = "True if the employee always used the same travel mode to commute in the last 30 days"
     )
     """
@@ -1104,14 +1107,14 @@ class AirPassenger(Respondent):
     # Origin of the flight for arriving passengers.
     # """
 
-    airline: NoneOrNanString[Union[e.Airline, str]] = Field(
+    airline: NoneOrNanString[int] = Field(
         ..., description = "Airline of the respondent's flight"
     )
     """
     Airline of the respondent's flight.
     """
 
-    flight_number: NoneOrNanString[str] = Field(
+    flight_number: NoneOrNanString[Union[str, int]] = Field(
         ..., description = "Flight number of the respondent's flight"
     )
     """
@@ -1166,7 +1169,7 @@ class AirPassenger(Respondent):
     Original origin for arriving passengers.
     """
 
-    flight_purpose: NoneOrNanString[Union[e.FlightPurpose, str]] = Field(
+    flight_purpose: NoneOrNanString[e.FlightPurpose] = Field(
         ..., description = "Purpose of the respondent's flight"
     )
     """
@@ -1187,7 +1190,7 @@ class AirPassenger(Respondent):
     Whether the visitor went/going to convention center.
     """
 
-    convention_center_activity: NoneOrNanString[Union[e.ConventionCenterActivity, str]] = Field(
+    convention_center_activity: NoneOrNanString[e.ConventionCenterActivity] = Field(
         ..., description = "Type of activity that the respondent conducted at the convention center"
     )
     """
@@ -1475,7 +1478,7 @@ class AirPassenger(Respondent):
     Mode (not listed) which will be used in the reverse direction
     """
 
-    sdia_transit_awareness: NoneOrNanString[bool] = Field(
+    sdia_transit_awareness: NoneOrNanString[e.YesNoType] = Field(
         ..., description = "Whether respondent is aware that buses are serving SDIA"
     )
     """
@@ -1488,82 +1491,124 @@ class AirPassenger(Respondent):
     """
     True if the respondent did not use transit because it is not convenient.
     """
-    
-    reasons_no_transit_dislike_crowd: NoneOrNanString[bool] = Field(
-        ..., description = "True if the respondent did not use transit because they dislike crowds"
+
+    reasons_no_transit_too_complicated: NoneOrNanString[bool] = Field(
+        ..., description = "True if the respondent did not use transit because it too complicated"
     )
     """
-    True if the respondent did not use transit because they dislike crowds.
-    """
-    
-    reasons_no_transit_not_flexible: NoneOrNanString[bool] = Field(
-        ..., description = "True if the respondent did not use transit because it is not flexible"
-    )
-    """
-    True if the respondent did not use transit because it is not flexible.
-    """
-    
-    reasons_no_transit_not_reliable: NoneOrNanString[bool] = Field(
-        ..., description = "True if the respondent did not use transit because it is not reliable"
-    )
-    """
-    True if the respondent did not use transit because it is not reliable.
-    """
-    
-    reasons_no_transit_not_safe: NoneOrNanString[bool] = Field(
-        ..., description = "True if the respondent did not use transit because it is not safe"
-    )
-    """
-    True if the respondent did not use transit because it is not safe.
-    """
-    
-    reasons_no_transit_takes_too_long: NoneOrNanString[bool] = Field(
-        ..., description = "True if the respondent did not use transit because it takes too long"
-    )
-    """
-    True if the respondent did not use transit because it takes too long.
-    """
-    
-    reasons_no_transit_not_economical: NoneOrNanString[bool] = Field(
-        ..., description = "True if the respondent did not use transit because it is not economical"
-    )
-    """
-    True if the respondent did not use transit because it is not economical.
-    """
-    
+    True if the respondent did not use transit because it is too complicated.
+    """ 
+
     reasons_no_transit_dont_know_how: NoneOrNanString[bool] = Field(
         ..., description = "True if the respondent did not use transit because they don't know how"
     )
     """
     True if the respondent did not use transit because they don't know how.
     """
-    
-    reasons_no_transit_too_much_walking: NoneOrNanString[bool] = Field(
-        ..., description = "True if the respondent did not use transit because there is too much walking"
-    )
-    """
-    True if the respondent did not use transit because there is too much walking.
-    """
-    
+
     reasons_no_transit_no_good_options: NoneOrNanString[bool] = Field(
         ..., description = "True if the respondent did not use transit because there are no good options"
     )
     """
-    True if the respondent did not use transit because there are no good options.
+    True if the respondent did not use transit because there are no good options
     """
-    
-    reasons_no_transit_dislike_transit: NoneOrNanString[bool] = Field(
-        ..., description = "True if the respondent did not use transit because they dislike transit"
+
+    reasons_no_transit_not_flexible: NoneOrNanString[bool] = Field(
+        ..., description = "True if the respondent did not use transit because it is not flexible"
     )
     """
-    True if the respondent did not use transit because they dislike transit.
+    True if the respondent did not use transit because it is not flexible.
     """
-    
-    reasons_no_transit_dislike_transit_with_luggage: NoneOrNanString[bool] = Field(
-        ..., description = "True if the respondent did not use transit because they dislike transit with luggage"
+
+    reasons_no_transit_not_reliable: NoneOrNanString[bool] = Field(
+        ..., description = "True if the respondent did not use transit because it is not reliable"
     )
     """
-    True if the respondent did not use transit because they dislike transit with luggage.
+    True if the respondent did not use transit because it is not reliable.
+    """
+
+    reasons_no_transit_not_safe: NoneOrNanString[bool] = Field(
+        ..., description = "True if the respondent did not use transit because it is not safe"
+    )
+    """
+    True if the respondent did not use transit because it is not safe.
+    """
+
+    reasons_no_transit_ride_too_long: NoneOrNanString[bool] = Field(
+        ..., description = "True if the respondent did not use transit because it takes too long"
+    )
+    """
+    True if the respondent did not use transit because it takes too long
+    """
+
+    reasons_no_transit_wait_too_long: NoneOrNanString[bool] = Field(
+        ..., description = "True if the respondent did not use transit because the wait time is too long"
+    )
+    """
+    True if the respondent did not use transit because the wait time is too long
+    """
+
+    reasons_no_transit_does_not_run_when_needed: NoneOrNanString[bool] = Field(
+        ..., description = "True if the respondent did not use transit because of it's schedule"
+    )
+    """
+    True if the respondent did not use transit because of it's schedule
+    """
+
+    reasons_no_transit_too_many_transfers: NoneOrNanString[bool] = Field(
+        ..., description = "True if the respondent did not use transit because it requries too many transfers"
+    )
+    """
+    True if the respondent did not use transit because it requires too many transfers
+    """
+
+    reasons_no_transit_stop_too_far: NoneOrNanString[bool] = Field(
+        ..., description = "True if the respondent did not use transit because the stop is too far"
+    )
+    """
+    True if the respondent did not use transit because the stop is too far
+    """
+
+    reasons_no_transit_not_economical: NoneOrNanString[bool] = Field(
+        ..., description = "True if the respondent did not use transit because it is not economical"
+    )
+    """
+    True if the respondent did not use transit because it is not economical
+    """
+
+    reasons_no_transit_dislike_crowded_trains_buses: NoneOrNanString[bool] = Field(
+        ..., description = "True if the respondent did not use transit because they don't like crowded trains and buses"
+    )
+    """
+    True if the respondent did not use transit because they don't like crowded trains and buses.
+    """
+
+    reasons_no_transit_too_much_walking_stairs: NoneOrNanString[bool] = Field(
+        ..., description = "True if the respondent did not use transit because it involves too much walking and/or stairs"
+    )
+    """
+    True if the respondent did not use transit because it too much walking and/or stairs
+    """
+
+    reasons_no_transit_dislike_public_transport: NoneOrNanString[bool] = Field(
+        ..., description = "True if the respondent did not use transit because they don't like public transport"
+    )
+    """
+    True if the respondent did not use transit because they don't like public transport
+    """
+
+    reasons_no_transit_dislike_public_transport_with_luggage: NoneOrNanString[bool] = Field(
+        ..., description = "True if the respondent did not use transit because they don't like public transport with luggage"
+    )
+    """
+    True if the respondent did not use transit because they don't like public transport with luggage
+    """
+
+    reasons_no_transit_prefer_other_mode: NoneOrNanString[bool] = Field(
+        ..., description = "True if the respondent did not use transit because they prefer other modes(s)"
+    )
+    """
+    True if the respondent did not use transit because they prefer other mode(s)
     """
 
     general_use_transit_resident: NoneOrNan[e.TransitUseFrequency] = Field(
@@ -1762,7 +1807,7 @@ class AirPassenger(Respondent):
     True if the visitor used their personal e-scooter during their visit to the San Diego Region.
     """
 
-    non_sdia_flight_frequency: NoneOrNan[e.SanFlightFrequency] = Field(
+    non_sdia_flight_frequency: NoneOrNan[e.OtherFlightAndTransitUseFrequency] = Field(
         ..., description = "Respondent's number of flights from airport other than SDIA in the past 12 months"
     )
     """
@@ -1776,7 +1821,7 @@ class AirPassenger(Respondent):
     Travel mode used to access other airports
     """
 
-    airport_access_transit_use_elsewhere: NoneOrNanString[e.OtherTransitUseFrequency] = Field(
+    airport_access_transit_use_elsewhere: NoneOrNanString[e.OtherFlightAndTransitUseFrequency] = Field(
         ..., description = "Frequency of Transit use by respondent to access other airports"
     )
     """
