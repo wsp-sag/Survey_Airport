@@ -46,10 +46,6 @@ plugins:
 
 nav:
   - Home: index.md
-  - Development: development.md
-  - Assessment: assessment.md
-  - User Guide: userguide.md
-  - Visualizer: visualizer.md
   - API: api.md
 
 extra:
