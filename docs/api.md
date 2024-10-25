@@ -7,3 +7,8 @@ This section contains the core structure of data model, which includes all the v
 This section includes the various response options for survey variables
 
 ::: data_model.enums
+
+## Utils
+This section includes the Utility methods
+
+::: data_model.utils
