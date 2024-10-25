@@ -11,6 +11,7 @@ from pydantic import (BaseModel, BeforeValidator, Field, computed_field,
 from pydantic_extra_types.coordinate import Coordinate, Latitude, Longitude
 
 import enums as e
+import re
 
 
 def coerce_nan_to_none(x: Any, field_name: str) -> Any:
@@ -40,7 +41,20 @@ class PydanticModel(BaseModel):
     """
     Base class for all Pydantic models, create in case future modifications are helpful
     """
+    @model_validator(mode="before")
+    def convert_datetime(cls, values):
+        # List of fields to validate
+        fields_to_check = ['taxi_fhv_fare', 'taxi_fhv_wait', 'parking_cost']
+        
+        for field in fields_to_check:
+            value = values.get(field)
+            if isinstance(value, datetime):
+                values[field] = value.strftime('%Y-%m-%d %H:%M:%S') #change to pass through the data model anyway
+                values['valid_record'] = False
+                values['validation_severity'] = "Low"
+                values['validation_error'] = f"{field} is datetime"
 
+        return values
 
 class Lat(BaseModel):
     lat: Latitude
@@ -312,14 +326,14 @@ class Trip(PydanticModel):
     Other Access mode to first transit vehicle for inbound trip to the airport.
     """
 
-    taxi_fhv_fare: NoneOrNan[Union[float,str]] = Field(
+    taxi_fhv_fare: NoneOrNanString[Union[str,float]] = Field(
         ..., description = "Taxi or for-hire vehicle fare"
     )
     """
     Taxi or for-hire vehicle fare.
     """
 
-    taxi_fhv_wait: NoneOrNan[Union[float,str]] = Field(
+    taxi_fhv_wait: NoneOrNanString[Union[str,float]] = Field(
         ..., description = "Wait time for taxi or for-hire vehicle"
     )
     """
@@ -346,6 +360,69 @@ class Trip(PydanticModel):
     """
     Amount respondent paid to park.
     """
+
+    @computed_field(
+        return_type = float,
+        description = "Numeric value of the taxi fare",
+    )
+    @property
+    def taxi_fhv_fare_numeric(cls):
+        """
+        Numeric Value of Taxi Fare
+        """
+        if isinstance(cls.taxi_fhv_fare, str):
+            numeric_value = re.findall(r"[-+]?\d*\.?\d+|\d+", cls.taxi_fhv_fare)
+            return numeric_value[0] if numeric_value else None
+        return cls.taxi_fhv_fare
+        
+    @computed_field(
+        return_type = float,
+        description = "Numeric value of the taxi Wait Time",
+    )
+    @property
+    def taxi_fhv_wait_numeric(cls):
+        """
+        Numeric Value of Taxi Wait Time
+        """
+        if isinstance(cls.taxi_fhv_wait, str):
+            numeric_value = re.findall(r"[-+]?\d*\.?\d+|\d+", cls.taxi_fhv_wait)
+            return numeric_value[0] if numeric_value else None
+        return cls.taxi_fhv_wait
+
+    @computed_field(
+        return_type = float,
+        description = "Numeric value of parking cost",
+    )
+    @property
+    def parking_cost_numeric(cls):
+        """
+        Numeric Value of parking cost
+        """
+        if isinstance(cls.parking_cost, str):
+            numeric_value = re.findall(r"[-+]?\d*\.?\d+|\d+", cls.parking_cost)
+            return numeric_value[0] if numeric_value else None
+        return cls.parking_cost
+
+    
+    # @model_validator(mode="before")
+    # def convert_datetime(cls, values):
+    #     # List of fields to validate
+    #     fields_to_check = ['taxi_fhv_fare', 'taxi_fhv_wait', 'parking_cost']
+        
+    #     for field in fields_to_check:
+    #         value = values.get(field)
+    #         if isinstance(value, datetime):
+    #             # Option 1: Convert datetime to float (timestamp)
+    #             # values[field] = value.timestamp()
+
+    #             # Option 2: Convert datetime to a formatted string
+    #             values[field] = value.strftime('%Y-%m-%d %H:%M:%S')
+    #             values['valid_record'] = False
+    #             values['validation_severity'] = "Low"
+    #             values['validation_error'] = field + f"{field} is datetime"
+
+    #     return values
+
 
     parking_cost_frequency: NoneOrNan[e.ParkingCostFrequency] = Field(
         ..., description = "Frequency of reported parking cost (e.g., one-time, per hour, per day, per month)"
@@ -799,6 +876,25 @@ class Respondent(PydanticModel):
     Details of the trip taken by the respondent.
     """
 
+    valid_record: bool = Field(
+        default=True, description="Indicates if the record is valid")
+    """
+    Indicates if the record is valid
+    """
+
+    validation_error: str = Field(
+        default="", description="Holds validation error messages")
+    """
+    Holds the validation error message
+    """
+
+    validation_severity: str = Field(
+        default = "", description = "Holds the severity of the validation error"
+    )
+    """
+    Holds the severity of the validation error
+    """
+
     @model_validator(mode="after")
     def prefer_not_disclose_is_unique(cls, values):
         race_unknown = values.race_unknown
@@ -816,8 +912,13 @@ class Respondent(PydanticModel):
             or race_middle_eastern
             or race_white
         ):
-            raise (ValueError("Prefer not to disclose cannot be combined with any race"))
+            #values.race_unknown = False
+            values.valid_record= False
+            values.validation_error = "Prefer Not to disclose cannot be combined with any other race"
+            values.validation_severity = "Low"
+        return values
 
+        v
 
 class Employee(Respondent):
     """
@@ -922,6 +1023,13 @@ class Employee(Respondent):
     )
     """
     True if the employee always used the same travel mode to commute in the last 30 days
+    """
+
+    same_commute_mode_other: NoneOrNanString[str] = Field(
+        ..., description = "Other Response to employee's travel mode to commute in the last 30 days"
+    )
+    """
+    Other Response to employee's travel mode to commute in the last 30 days
     """
 
     alt_commute_mode_taxi: NoneOrNanString[bool] = Field(
@@ -1106,6 +1214,21 @@ class AirPassenger(Respondent):
     Where is the respondent flying from/flying to.
     """
 
+
+    @model_validator(mode="before")
+    def convert_datetime(cls, values):
+        # List of fields to validate
+        fields_to_check = ['previous_or_next_airport']
+        
+        for field in fields_to_check:
+            value = values.get(field)
+            if not isinstance(value, str):
+                values[field] = str(value)
+                values['valid_record'] = False
+                values['validation_severity'] = "Low"
+                values['validation_error'] = f"{field} is not string"
+
+        return values
     @computed_field(
         return_type = str,
         description = "Previous flight origin for an arriving passenger",
@@ -1145,11 +1268,18 @@ class AirPassenger(Respondent):
     # Origin of the flight for arriving passengers.
     # """
 
-    airline: NoneOrNanString[int] = Field(
+    airline: NoneOrNanString[e.Airline] = Field(
         ..., description = "Airline of the respondent's flight"
     )
     """
     Airline of the respondent's flight.
+    """
+
+    airline_other: NoneOrNanString[str] = Field(
+        ..., description = "Other (not listed) airline of the respondent's flight"
+    )
+    """
+    Other (not listed) airline of the respondent's flight.
     """
 
     flight_number: NoneOrNanString[Union[str, int]] = Field(
