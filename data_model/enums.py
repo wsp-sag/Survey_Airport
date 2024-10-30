@@ -551,7 +551,7 @@ class TravelDuration(IntEnum):
 
 class PartySize(IntEnum):
     """
-    Integer mapping for number of persons in travel party
+    Integer mapping for number of persons in travel party (apart from respondent)
     """
     NONE = 0
     ONE = 1  
@@ -1127,8 +1127,10 @@ class HouseholdIncome(IntEnum):
     BETWEEN_60K_75K = 10
     BETWEEN_75K_100K = 11
     BETWEEN_100K_150K = 12
-    ABOVE_150K = 13
+    BETWEEN_150_199K = 13
     PREFER_NOT_TO_SAY = 14  
+    BETWEEN_200_299K = 15
+    MORE_THAN_300K = 16
     OTHER = 98
     REFUSED = 99
 

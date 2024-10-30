@@ -1430,10 +1430,10 @@ class AirPassenger(Respondent):
     """
 
     party_size_flight: NoneOrNanString[e.PartySize] = Field(
-        ..., description = "Size of the party flying with the respondent (count includes the respondent)"
+        ..., description = "Number of people flying with the respondent (count excludes the respondent)"
     )
     """
-    Size of the party flying with the respondent (count includes the respondent).
+    Number of people flying with the respondent (count excludes the respondent)
     """
 
     party_size_ground_access_same: NoneOrNanString[bool] = Field(
@@ -1444,10 +1444,10 @@ class AirPassenger(Respondent):
     """
 
     party_size_ground_access: NoneOrNanString[e.PartySize] = Field(
-        ..., description = "Size of ground access travel party"
+        ..., description = "Size of ground access travel party (count excludes the respondent)"
     )
     """
-    Size of ground access travel party.
+    Size of ground access travel party (count excludes the respondent)
     """
 
     party_includes_child_aged00to05: NoneOrNanString[bool] = Field(
