@@ -431,7 +431,7 @@ class Trip(PydanticModel):
     Frequency of reported parking cost (e.g., one-time, per hour, per day, per month)
     """
 
-    parking_cost_frequency_other: NoneOrNanString[str] = Field(
+    parking_cost_frequency_other: NoneOrNanString[Union[str, int]] = Field(
         ..., description = "Other frequency of reported parking cost"
     )
     """
@@ -596,6 +596,14 @@ class Respondent(PydanticModel):
     Date and time when respondent completed the survey
     """
 
+    submit: NoneOrNanString[bool] = Field(
+        ..., description = "True if the record is to be used for submittal"
+    )
+
+    """
+    True if the record is to be used for submittal
+    """
+
     interview_location: NoneOrNan[e.InterviewLocation] = Field(
         ..., description = "Location where respondent was intercepted")
     """
@@ -647,6 +655,13 @@ class Respondent(PydanticModel):
     If neither a resident or a visitor, whether the respondent is visiting San Diego.
     """
 
+    resident_visitor_arriving: NoneOrNanString[bool] = Field(
+        ..., description = "True if respondent lives outside San Diego Region and is going home by ground transportation"
+    )
+
+    """
+    True if respondent lives outside San Diego Region and is going home by ground transportation
+    """
     resident_visitor: NoneOrNan[e.ResidentVisitor] = Field(
         ...,
         description="Where the respondent resides in the airport service area most of the year",
@@ -814,7 +829,7 @@ class Respondent(PydanticModel):
     Income range of the respondent's household.
     """
 
-    is_income_below_poverty: NoneOrNanString[bool] = Field(
+    is_income_below_poverty: NoneOrNanString[e.YesNoType] = Field(
         ..., description="Is the respondent's household income below poverty?",
     )
     """
@@ -836,7 +851,7 @@ class Respondent(PydanticModel):
     Whether the respondent chose to participate in the SP Survey
     """
 
-    stay_informed: NoneOrNanString[bool] = Field(
+    stay_informed: NoneOrNanString[e.YesNoType] = Field(
         ..., description = "Whether the respondent chose to Stay Informed about the project"
     )
 
@@ -1165,6 +1180,19 @@ class Employee(Respondent):
     True if the employee used their personal e-scooter to commute to the airport in the past 30 days.
     """
 
+    commute_mode_decision: NoneOrNanString[e.ModeDecision] = Field(
+        ..., description = "Factor affecting the Mode choice of the employee"
+    )
+    """
+    Factor affecting the Mode choice of the employee
+    """
+
+    commute_mode_decision_other: NoneOrNanString[str] = Field(
+        ..., description = "(Other) Factor affecting the Mode choice of the employee"
+    )
+    """
+    (Other) Factor affecting the Mode choice of the employee
+    """
 
     # past_commute_modes: List[NoneOrNan[e.TravelMode]] = Field(
     #     ..., description = "Modes used to commute to SDIA in the past 12 months"
@@ -1296,6 +1324,22 @@ class AirPassenger(Respondent):
     True if the passenger did not use/is not using any connecting flights in their journey
     """
 
+    @computed_field(
+        return_type = e.Terminal,
+        description = "Airport Terminal for Air Passenger",
+    )
+    @property
+    def airport_terminal(cls):
+        """
+        Airport Terminal for Air Passenger
+        """
+        if cls.airline in range(1,14):
+            return e.Terminal.TERMINAL_2
+        elif cls.airline in [14,15,16,17]:
+            return e.Terminal.TERMINAL_1
+        else:
+            return e.Terminal.UNKNOWN
+
 
     @computed_field(
         return_type = bool,
@@ -1380,7 +1424,7 @@ class AirPassenger(Respondent):
     Other (not listed) purpose of the respondent's flight
     """
 
-    convention_center: NoneOrNanString[bool] = Field(
+    convention_center: NoneOrNanString[e.YesNoType] = Field(
         ..., description = "Whether the visitor went/going to convention center"
     )
     """

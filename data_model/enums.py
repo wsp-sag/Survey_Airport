@@ -395,6 +395,7 @@ class Terminal(IntEnum):
     """
     TERMINAL_1 = 1
     TERMINAL_2 = 2
+    UNKNOWN = 99
 
 
 class Airline(IntEnum):
@@ -668,7 +669,9 @@ class Employers(IntEnum):
     US_CUSTOMS_AND_BORDER_PROTECTION = 72	
     US_NEWS_AND_WORLD_REPORT = 73	
     WARWICKS_OF_LA_JOLLA = 74	
-    WESTJET = 75	
+    WESTJET = 75
+    SDCRAA_SDIA = 76
+    FLAGSHIP = 77	
     OTHER_SEPCIFY = 98	
 
 
@@ -911,6 +914,7 @@ class ModeDecision(IntEnum):
     DEPENDS_ON_TRAVEL_PARTY = 7
     DEPENDS_ON_WHO_PAYS = 8
     OTHER_SPECIFY = 98
+    REFUSED = 99
 
 
 class ActivityType(IntEnum):
@@ -1020,6 +1024,7 @@ class TransitUseFrequency(IntEnum):
     FIVE_DAYS = 5
     SIX_DAYS = 6
     SEVEN_DAYS = 7
+    REFUSED = 99
 
 class OtherFlightAndTransitUseFrequency(IntEnum):
     """
