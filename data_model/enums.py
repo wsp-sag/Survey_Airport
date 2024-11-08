@@ -928,6 +928,7 @@ class ActivityType(IntEnum):
     CONVENTION_CENTER = 4
     OTHER_BUSINESS = 5
     OTHER_RESIDENCE = 6 
+    SAN_DIEGO_AIRPORT = 7
     OTHER = 98
     REFUSED = 99
 

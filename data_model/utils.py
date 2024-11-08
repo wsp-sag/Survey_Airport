@@ -5,6 +5,8 @@ Utility functions used with the data model.
 from collections import defaultdict
 from typing import Any, get_origin, get_args, Annotated, Optional
 from enum import Enum, IntEnum
+import pandas as pd
+import enums as e
 
 def extract_base_type(typ):
     """
@@ -104,3 +106,60 @@ def military_to_clock(military_time):
 
     # Format the output string
     return f"{clock_hours:02d}:{minutes:02d} {period}"
+
+
+def add_synthetic_records(df):
+    """
+    Adds synthetic responses to the survey. Only adds such records corresponding to Departing Passengers.
+    Keeps Sociodemographics and other attributes same, exchanges trip based characteristics, like modes and origin, destination related attributes.
+    """
+     # Create a list to store synthetic records
+    synthetic_records = []
+    # Iterate through each record in the dataframe
+    for index, row in df.iterrows():
+        # Create a copy of the current row for the synthetic record
+        if row['passenger_type'] == e.PassengerType.DEPARTING and row['is_completed'] == True:
+            synthetic_record = row.copy()
+
+            # Flip inbound/outbound
+            synthetic_record['respondentid'] = 'syn-' + str(row['respondentid'])
+            synthetic_record['inbound_or_outbound'] = 2 if row['inbound_or_outbound'] == 1 else 1
+            synthetic_record['passenger_type'] = e.PassengerType.ARRIVING
+            synthetic_record['previous_flight_origin'], synthetic_record['next_flight_destination'] = row['next_flight_destination'], row['previous_flight_origin']
+
+            # Flipping the main and reverse modes:
+            if row['reverse_mode']:
+                synthetic_record['main_mode'], synthetic_record['reverse_mode'] = row['reverse_mode'], row['main_mode']
+            else:
+                synthetic_record['main_mode'], synthetic_record['reverse_mode_predicted'] = row['reverse_mode_predicted'], row['main_mode']
+
+            # Access and Egress Modes:
+            synthetic_record['access_mode'], synthetic_record['egress_mode'] = row['egress_mode'], row['access_mode']
+
+            # Activity Type
+            synthetic_record['origin_activity_type'], synthetic_record['destination_activity_type'] = row['destination_activity_type'], row['origin_activity_type']
+            synthetic_record['origin_activity_type_other'], synthetic_record['destination_activity_type_other'] = row['destination_activity_type_other'], row['origin_activity_type_other']
+           
+           #Location Attributes
+            synthetic_record['origin_state'], synthetic_record['destination_state'] = row['destination_state'], row['origin_state']
+            synthetic_record['origin_city'], synthetic_record['destination_city'] = row['destination_city'], row['origin_city']
+            synthetic_record['origin_zip'], synthetic_record['destination_zip'] = row['destination_zip'], row['origin_zip']
+
+
+            #synthetic_record['to_airport_transit_route_1'], synthetic_record['from_airport_transit_route_4'] = row['from_airport_transit_route_4'], row['to_airport_transit_route_1']
+            #synthetic_record['to_airport_transit_route_2'], synthetic_record['from_airport_transit_route_3'] = row['from_airport_transit_route_3'], row['to_airport_transit_route_2']
+            #synthetic_record['to_airport_transit_route_3'], synthetic_record['from_airport_transit_route_2'] = row['from_airport_transit_route_2'], row['to_airport_transit_route_3']
+            #synthetic_record['to_airport_transit_route_4'], synthetic_record['from_airport_transit_route_1'] = row['from_airport_transit_route_1'], row['to_airport_transit_route_4']
+
+
+            # Append the synthetic record to the list
+            synthetic_record['record_type_synthetic'] = 1
+            synthetic_records.append(synthetic_record)
+    
+    # Convert the list of synthetic records to a DataFrame
+    synthetic_df = pd.DataFrame(synthetic_records)
+
+    # Concatenate the original and synthetic dataframes
+    combined_df = pd.concat([df, synthetic_df], ignore_index=True)
+
+    return combined_df

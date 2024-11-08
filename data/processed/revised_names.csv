@@ -358,3 +358,19 @@ STAY_INFORMED,stay_informed_label
 SURVEY_LANGUAGE_Code_,survey_language
 SURVEY_LANGUAGE,survey_language_label
 SURVEY_LANGUAGE_Other_,survey_language_other
+REFUS_AGE_OBSERVED_Code_,delete
+REFUS_AGE_OBSERVED,delete
+REFUS_GENDER_OBSRVED_Code_,delete
+REFUS_GENDER_OBSRVED,delete
+REFUS_RACETHN_OBSERV_1_,delete
+REFUS_RACETHN_OBSERV_2_,delete
+REFUS_RACETHN_OBSERV_3_,delete
+REFUS_RACETHN_OBSERV_4_,delete
+REFUS_RACETHN_OBSERV_5_,delete
+REFUS_RACETHN_OBSERV_6_,delete
+REFUS_RACETHN_OBSERV_7_,delete
+REFUS_RACETHN_OBSERV_8_,delete
+REFUS_RACETHN_OBSERV_Other_,delete
+Date started,delete
+HAVE_5_MIN_FOR_SURVE_Code_,delete
+HAVE_5_MIN_FOR_SURVE,delete

@@ -583,10 +583,24 @@ class Respondent(PydanticModel):
     Data model for a survey respondent. It includes attributes common to air passengers and employees.
     """
 
-    respondentid: NoneOrNan[int] = Field(
+    respondentid: Union[int,str] = Field(
         ..., description="Unique identifier for the respondent")
     """
     Unique identifier for the respondent.
+    """
+
+    record_type_synthetic: bool =  Field(
+        ..., description = "True if the record is synthetically generated"
+    )
+    """
+    True if the record is synthetically generated
+    """
+
+    is_completed: bool = Field(
+        ..., description = "True if the record is complete"
+    )
+    """
+    True if the record is complete
     """
 
     date_completed: NoneOrNanString[datetime] = Field(
