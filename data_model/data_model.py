@@ -589,6 +589,13 @@ class Respondent(PydanticModel):
     Unique identifier for the respondent.
     """
 
+    is_completed: bool = Field(
+        ..., description = "True if the record is complete"
+    )
+    """
+    True if the record is complete
+    """
+
     record_type_synthetic: bool =  Field(
         ..., description = "True if the record is synthetically generated"
     )
@@ -596,12 +603,6 @@ class Respondent(PydanticModel):
     True if the record is synthetically generated
     """
 
-    is_completed: bool = Field(
-        ..., description = "True if the record is complete"
-    )
-    """
-    True if the record is complete
-    """
 
     date_completed: NoneOrNanString[datetime] = Field(
         ..., description = "Date and time when respondent completed the survey"
@@ -922,6 +923,13 @@ class Respondent(PydanticModel):
     )
     """
     Holds the severity of the validation error
+    """
+
+    weight: float = Field(
+        ..., description = 'Expansion Factor of the observation'
+    )
+    """
+    Expansion Factor of the observation
     """
 
     @model_validator(mode="after")
