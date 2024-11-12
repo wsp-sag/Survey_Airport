@@ -1355,6 +1355,12 @@ class AirPassenger(Respondent):
         """
         Airport Terminal for Air Passenger
         """
+        if cls.interview_location == e.InterviewLocation.TERMINAL_1:
+            return e.Terminal.TERMINAL_1
+        if cls.interview_location == e.InterviewLocation.TERMINAL_2:
+            return e.Terminal.TERMINAL_2
+        
+        #Deriving using Airline if location is not a terminal
         if cls.airline in range(1,14):
             return e.Terminal.TERMINAL_2
         elif cls.airline in [14,15,16,17]:
