@@ -596,6 +596,13 @@ class Respondent(PydanticModel):
     True if the record is complete
     """
 
+    is_pilot: bool = Field(
+        ..., description = "True if the record was collected during the pilot survey"
+    )
+    """
+    True if the record was collected during the pilot survey
+    """
+
     record_type_synthetic: bool =  Field(
         ..., description = "True if the record is synthetically generated"
     )
