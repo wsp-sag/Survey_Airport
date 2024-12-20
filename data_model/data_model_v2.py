@@ -1209,6 +1209,13 @@ class Employee(Respondent):
     True if the employee used their personal e-scooter to commute to the airport in the past 30 days.
     """
 
+    alt_commute_mode_other: NoneOrNanString[str] = Field(
+        ..., description = "Other mode used by the employee to commute to the airport in the past 30 days."
+    )
+    """
+    Other mode used by the employee to commute to the airport in the past 30 days
+    """
+
     commute_mode_decision: NoneOrNanString[e.ModeDecision] = Field(
         ..., description = "Factor affecting the Mode choice of the employee"
     )
@@ -1252,6 +1259,7 @@ class Employee(Respondent):
     """
 
 
+
 class AirPassenger(Respondent):
     """
     Data model for an air passenger respondent. It includes attributes specific to air passengers.
@@ -1272,58 +1280,20 @@ class AirPassenger(Respondent):
     """
 
 
-    @model_validator(mode="before")
-    def convert_datetime(cls, values):
-        # List of fields to validate
-        fields_to_check = ['previous_or_next_airport']
+    # @model_validator(mode="before")
+    # def validate_airport(cls, values):
+    #     # List of fields to validate
+    #     fields_to_check = ['previous_or_next_airport']
         
-        for field in fields_to_check:
-            value = values.get(field)
-            if not isinstance(value, str):
-                values[field] = str(value)
-                values['valid_record'] = False
-                values['validation_severity'] = "Low"
-                values['validation_error'] = f"{field} is not string"
+    #     for field in fields_to_check:
+    #         value = values.get(field)
+    #         if not isinstance(value, str):
+    #             values[field] = str(value)
+    #             values['valid_record'] = False
+    #             values['validation_severity'] = "Low"
+    #             values['validation_error'] = f"{field} is not string"
 
-        return values
-    @computed_field(
-        return_type = str,
-        description = "Previous flight origin for an arriving passenger",
-    )
-    @property
-    def previous_flight_origin(cls):
-        """
-        Previous flight origin for an arriving passenger
-        """
-        if cls.passenger_type == e.PassengerType.ARRIVING:
-            return cls.previous_or_next_airport
-        
-        
-    @computed_field(
-        return_type = str,
-        description = "Next Flight Destination for a departing passenger",
-    )
-    @property
-    def next_flight_destination(cls):
-        """
-        Next Flight Destination for a departing passenger
-        """
-        if cls.passenger_type == e.PassengerType.DEPARTING:
-            return cls.previous_or_next_airport
-
-    # next_flight_destination: NoneOrNanString[str] = Field(
-    #     ..., description = "Destination of the flight for departing passengers"
-    # )
-    # """
-    # Destination of the flight for departing passengers.
-    # """
-
-    # previous_flight_origin: NoneOrNanString[str] = Field(
-    #     ..., description = "Origin of the flight for arriving passengers"
-    # )
-    # """
-    # Origin of the flight for arriving passengers.
-    # """
+    #     return values
 
     airline: NoneOrNanString[e.Airline] = Field(
         ..., description = "Airline of the respondent's flight"
@@ -1375,76 +1345,6 @@ class AirPassenger(Respondent):
         else:
             return e.Terminal.UNKNOWN
 
-
-    @computed_field(
-        return_type = bool,
-        description = "True if the previous flight origin was original and not a layover",
-    )
-    @property
-    def is_original_origin(cls):
-        """
-        True if the previous flight origin was original and not a layover
-        """
-        if cls.passenger_type == e.PassengerType.ARRIVING:
-            return cls.not_using_connecting
-        
-        
-    @computed_field(
-        return_type = bool,
-        description = "True if the next flight destination is final and not a layover",
-    )
-    @property
-    def is_final_destination(cls):
-        """
-        True if the next flight destination is final and not a layover
-        """
-        if cls.passenger_type == e.PassengerType.DEPARTING:
-            return cls.not_using_connecting
-        
-
-
-    # is_final_destination: NoneOrNanString[bool] = Field(
-    #     ..., description = "Whether respondent's next destination is their final destination"
-    # )
-    # """
-    # Whether respondent's next destination is their final destination.
-    # """
-
-    # is_original_origin: NoneOrNanString[bool] = Field(
-    #     ..., description = "Whether the respondent used a connecting flight"
-    # )
-    # """
-    # Whether the respondent used a connecting flight.
-    # """
-
-    final_flight_destination: NoneOrNanString[str] = Field(
-        ..., description = "Final destination of the flight for departing passengers"
-    )
-    """
-    Final destination of the flight for departing passengers.
-    """
-
-    flight_departure_time: NoneOrNan[e.DepartTime] = Field(
-        ..., description = "Time of flight departure"
-    )
-    """
-    Time of flight departure.
-    """
-
-    flight_arrival_time: NoneOrNan[e.DepartTime] = Field(
-        ..., description = "Time of flight arrival"
-    )
-    """
-    Time of flight arrival.
-    """
-
-    original_flight_origin: NoneOrNanString[str] = Field(
-        ..., description = "Original origin for arriving passengers"
-    )
-    """
-    Original origin for arriving passengers.
-    """
-
     flight_purpose: NoneOrNanString[e.FlightPurpose] = Field(
         ..., description = "Purpose of the respondent's flight"
     )
@@ -1457,27 +1357,6 @@ class AirPassenger(Respondent):
     )
     """
     Other (not listed) purpose of the respondent's flight
-    """
-
-    convention_center: NoneOrNanString[e.YesNoType] = Field(
-        ..., description = "Whether the visitor went/going to convention center"
-    )
-    """
-    Whether the visitor went/going to convention center.
-    """
-
-    convention_center_activity: NoneOrNanString[e.ConventionCenterActivity] = Field(
-        ..., description = "Type of activity that the respondent conducted at the convention center"
-    )
-    """
-    Type of activity that the respondent conducted at the convention center.
-    """
-
-    convention_center_activity_other: NoneOrNanString[str] = Field(
-        ..., description = "Type of activity (not listed) that the respondent conducted at the convention center"
-    )
-    """
-    Type of activity (not listed) that the respondent conducted at the convention center.
     """
 
     checked_bags: NoneOrNan[e.CheckedBags] = Field(
@@ -1493,21 +1372,7 @@ class AirPassenger(Respondent):
     """
     Number of carry-on bags.
     """
-
-    nights_away: NoneOrNan[e.TravelDuration] = Field(
-        ..., description = "Number of nights the departing air passengers will be away"
-    )
-    """
-    Number of nights the departing air passengers will be away.
-    """
-
-    nights_visited: NoneOrNan[e.TravelDuration] = Field(
-        ..., description = "Number of nights the arriving air passengers will be in the San Diego Region"
-    )
-    """
-    Number of nights the arriving air passengers will be in the San Diego Region.
-    """
-
+    
     party_size_flight: NoneOrNanString[e.PartySize] = Field(
         ..., description = "Number of people flying with the respondent (count excludes the respondent)"
     )
@@ -1724,8 +1589,14 @@ class AirPassenger(Respondent):
     """
     True if the respondent used a personal electric scooter for their trip to SDIA in the last 12 months
     """
+    
+    sdia_accessmode_split_other: NoneOrNanString[str] = Field(
+        ..., description = "Other mode the respondent used for their trip to SDIA in the last 12 months"
+    )
+    """
+    Other mode the respondent used for their trip to SDIA in the last 12 months.
+    """
 
-#
     sdia_accessmode_decision: NoneOrNan[e.ModeDecision] = Field(
         ..., description = "Factor which affects mode choice, for respondents who do not always used the same mode"
     )
@@ -1739,6 +1610,7 @@ class AirPassenger(Respondent):
     """
     Mode that was used in the reverse direction.
     """
+    pass
 
     reverse_mode_predicted: NoneOrNan[e.TravelMode] = Field(
         ..., description = "Mode that will be used in the reverse direction"
@@ -1887,26 +1759,184 @@ class AirPassenger(Respondent):
     True if the respondent did not use transit because they prefer other mode(s)
     """
 
+    reasons_no_transit_other: NoneOrNanString[str] = Field(
+        ..., description = "Other reason why the respondent did not use transit"
+    )
+    """
+    Other reason why the respondent did not use transit.
+    """ 
+
+    non_sdia_flight_frequency: NoneOrNan[e.OtherFlightAndTransitUseFrequency] = Field(
+        ..., description = "Respondent's number of flights from airport other than SDIA in the past 12 months"
+    )
+    """
+    Respondent's number of flights from airport other than SDIA in the past 12 months.
+    """
+
+    other_airport_accessmode: NoneOrNanString[e.TravelMode] =  Field(
+        ..., description = "Travel mode used to access other airports"
+    )
+    """
+    Travel mode used to access other airports
+    """
+
+    airport_access_transit_use_elsewhere: NoneOrNanString[e.OtherFlightAndTransitUseFrequency] = Field(
+        ..., description = "Frequency of Transit use by respondent to access other airports"
+    )
+    """
+    Frequency of Transit use by respondent to access other airports.
+    """
+
+    airportaccesstransitname: NoneOrNanString[str] = Field(
+        ..., description = "Names of airports accessed by transit"
+    )
+    """
+    Names of airports accessed by transit.
+    """
+
+class ArrivingAirPassenger(AirPassenger):
+    """
+    Data model for an arriving air passenger. It includes attributes specific to arriving air passengers.
+    """
+
+    @computed_field(
+        return_type = str,
+        description = "Previous flight origin for an arriving passenger",
+    )
+    @property
+    def previous_flight_origin(cls):
+        """
+        Previous flight origin for an arriving passenger
+        """
+        if cls.passenger_type == e.PassengerType.ARRIVING:
+            return cls.previous_or_next_airport
+    
+    @computed_field(
+        return_type = bool,
+        description = "True if the previous flight origin was original and not a layover",
+    )
+    @property
+    def is_original_origin(cls):
+        """
+        True if the previous flight origin was original and not a layover
+        """
+        return cls.not_using_connecting
+    
+    flight_arrival_time: NoneOrNan[e.DepartTime] = Field(
+        ..., description = "Time of flight arrival"
+    )
+    """
+    Time of flight arrival.
+    """
+
+    original_flight_origin: NoneOrNanString[str] = Field(
+        ..., description = "Original origin for arriving passengers"
+    )
+    """
+    Original origin for arriving passengers.
+    """
+
+class DepartingAirPassenger(AirPassenger):
+    """
+    Data model for an arriving air passenger. It includes attributes specific to arriving air passengers.
+    """
+            
+    @computed_field(
+        return_type = str,
+        description = "Next Flight Destination for a departing passenger",
+    )
+    @property
+    def next_flight_destination(cls):
+        """
+        Next Flight Destination for a departing passenger
+        """
+        return cls.previous_or_next_airport
+    
+    @computed_field(
+        return_type = bool,
+        description = "True if the next flight destination is final and not a layover",
+    )
+    @property
+    def is_final_destination(cls):
+        """
+        True if the next flight destination is final and not a layover
+        """
+        if cls.passenger_type == e.PassengerType.DEPARTING:
+            return cls.not_using_connecting
+        
+    final_flight_destination: NoneOrNanString[str] = Field(
+        ..., description = "Final destination of the flight for departing passengers"
+    )
+    """
+    Final destination of the flight for departing passengers.
+    """
+
+    flight_departure_time: NoneOrNan[e.DepartTime] = Field(
+        ..., description = "Time of flight departure"
+    )
+    """
+    Time of flight departure.
+    """
+
+class Resident():
+    """
+    Data Model for a Air Passenger who is a resident of the San Deigo Region. 
+    """
+    
+    nights_away: NoneOrNan[e.TravelDuration] = Field(
+        ..., description = "Number of nights the departing air passengers will be away"
+    )
+    """
+    Number of nights the departing air passengers will be away.
+    """
+
     general_use_transit_resident: NoneOrNan[e.TransitUseFrequency] = Field(
         ..., description = "General transit use frequency by residents of San Diego region in San Diego region"
     )
     """
     General transit use frequency by residents of San Diego region in San Diego region.
     """
+    pass
 
+class Visitor():
+    """
+    Data Model for a Air Passenger who is a visitor of the San Deigo Region. 
+    """
+
+    convention_center: NoneOrNanString[e.YesNoType] = Field(
+        ..., description = "Whether the visitor went/going to convention center"
+    )
+    """
+    Whether the visitor went/going to convention center.
+    """
+
+    convention_center_activity: NoneOrNanString[e.ConventionCenterActivity] = Field(
+        ..., description = "Type of activity that the respondent conducted at the convention center"
+    )
+    """
+    Type of activity that the respondent conducted at the convention center.
+    """
+
+    convention_center_activity_other: NoneOrNanString[str] = Field(
+        ..., description = "Type of activity (not listed) that the respondent conducted at the convention center"
+    )
+    """
+    Type of activity (not listed) that the respondent conducted at the convention center.
+    """
+    
+    nights_visited: NoneOrNan[e.TravelDuration] = Field(
+        ..., description = "Number of nights the arriving air passengers will be in the San Diego Region"
+    )
+    """
+    Number of nights the arriving air passengers will be in the San Diego Region.
+    """
+    
     general_use_transit_visitor_home: NoneOrNan[e.TransitUseFrequency] = Field(
         ..., description = "General transit use frequency by visitors of San Diego region when home"
     )
     """
     General transit use frequency by visitors of San Diego region when home.
     """
-
-    # general_modes_used_visitor: List[NoneOrNan[e.TravelMode]] = Field(
-    #     ..., description = "Modes respondent used during visit of San Diego region"
-    # )
-    # """
-    # Modes respondent used during visit of San Diego region.
-    # """
 
     general_modes_used_visitor_taxi: NoneOrNanString[bool] = Field(
         ..., description = "True if the visitor used Taxi as a mode during their visit to the San Diego Region"
@@ -2083,31 +2113,24 @@ class AirPassenger(Respondent):
     True if the visitor used their personal e-scooter during their visit to the San Diego Region.
     """
 
-    non_sdia_flight_frequency: NoneOrNan[e.OtherFlightAndTransitUseFrequency] = Field(
-        ..., description = "Respondent's number of flights from airport other than SDIA in the past 12 months"
+    general_modes_used_visitor_other: NoneOrNanString[str] = Field(
+        ..., description = "Other mode used by the visitor during their visit to the San Diego Region."
     )
     """
-    Respondent's number of flights from airport other than SDIA in the past 12 months.
+    Other mode used by the visitor during their visit to the San Diego Region.
     """
+    pass
 
-    other_airport_accessmode: NoneOrNanString[e.TravelMode] =  Field(
-        ..., description = "Travel mode used to access other airports"
-    )
-    """
-    Travel mode used to access other airports
-    """
 
-    airport_access_transit_use_elsewhere: NoneOrNanString[e.OtherFlightAndTransitUseFrequency] = Field(
-        ..., description = "Frequency of Transit use by respondent to access other airports"
-    )
-    """
-    Frequency of Transit use by respondent to access other airports.
-    """
 
-    airportaccesstransitname: NoneOrNanString[str] = Field(
-        ..., description = "Names of airports accessed by transit"
-    )
-    """
-    Names of airports accessed by transit.
-    """
+class DepartingPassengerResident(DepartingAirPassenger, Resident):
+    pass 
 
+class DepartingPassengerVisitor(DepartingAirPassenger, Visitor):
+    pass
+
+class ArrivingPassengerResident(ArrivingAirPassenger, Resident):
+    pass
+
+class ArrivingPassengerVisitor(ArrivingAirPassenger, Visitor):
+    pass
