@@ -374,3 +374,14 @@ REFUS_RACETHN_OBSERV_Other_,delete
 Date started,delete
 HAVE_5_MIN_FOR_SURVE_Code_,delete
 HAVE_5_MIN_FOR_SURVE,delete
+METHOD,delete
+WEB BROWSER,delete
+REFERRING URL,delete
+DURATION,delete
+LOCATION_LAT,delete
+LOCATION_LONG,delete
+D_OTHER_SHARED_VAN,delete
+SDIA_ACCESS_SPLIT_Other_,sdia_accessmode_split_other
+REASONS_NO_TRANSIT_Other_,reasons_no_transit_other
+GEN_MODES_VISITOR_Other_,general_modes_used_visitor_other
+ALT_COMMUTE_MODES_Other_,alt_commute_modes_other

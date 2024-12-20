@@ -34,7 +34,7 @@ class Type(IntEnum):
     EMPLOYEE = 2
     NEITHER = 3
     OTHER = 98
-    UNNKNOWN = 99
+    UNKNOWN = 99
 
 
 class PassengerType(IntEnum):
