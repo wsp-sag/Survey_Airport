@@ -163,3 +163,6 @@ cython_debug/
 
 # MacOS file
 .DS_Store
+data/interim/survey_data_clean.csv
+data/processed/data_model_output.csv
+data/processed/failed_records.csv
