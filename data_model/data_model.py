@@ -1216,6 +1216,13 @@ class Employee(Respondent):
     Factor affecting the Mode choice of the employee
     """
 
+    alt_commute_mode_other: NoneOrNanString[str] = Field(
+        ..., description = "Other mode used by the employee to commute to the airport in the past 30 days."
+    )
+    """
+    Other mode used by the employee to commute to the airport in the past 30 days
+    """
+    
     commute_mode_decision_other: NoneOrNanString[str] = Field(
         ..., description = "(Other) Factor affecting the Mode choice of the employee"
     )
@@ -1725,6 +1732,13 @@ class AirPassenger(Respondent):
     True if the respondent used a personal electric scooter for their trip to SDIA in the last 12 months
     """
 
+    sdia_accessmode_split_other: NoneOrNanString[str] = Field(
+        ..., description = "Other mode the respondent used for their trip to SDIA in the last 12 months"
+    )
+    """
+    Other mode the respondent used for their trip to SDIA in the last 12 months.
+    """
+
 #
     sdia_accessmode_decision: NoneOrNan[e.ModeDecision] = Field(
         ..., description = "Factor which affects mode choice, for respondents who do not always used the same mode"
@@ -1885,6 +1899,13 @@ class AirPassenger(Respondent):
     )
     """
     True if the respondent did not use transit because they prefer other mode(s)
+    """
+
+    reasons_no_transit_other: NoneOrNanString[str] = Field(
+        ..., description = "Other reason why the respondent did not use transit"
+    )
+    """
+    Other reason why the respondent did not use transit.
     """
 
     general_use_transit_resident: NoneOrNan[e.TransitUseFrequency] = Field(
@@ -2081,6 +2102,13 @@ class AirPassenger(Respondent):
     )
     """
     True if the visitor used their personal e-scooter during their visit to the San Diego Region.
+    """
+
+    general_modes_used_visitor_other: NoneOrNanString[str] = Field(
+        ..., description = "Other mode used by the visitor during their visit to the San Diego Region."
+    )
+    """
+    Other mode used by the visitor during their visit to the San Diego Region.
     """
 
     non_sdia_flight_frequency: NoneOrNan[e.OtherFlightAndTransitUseFrequency] = Field(
