@@ -59,6 +59,7 @@ class ResidentVisitorGeneral(IntEnum):
     OTHER = 98
     REFUSED = 99
 
+
 class ResidentVisitorFollowup(IntEnum):
     """
     Integer Mapping for the followup question to respondent if they are neither a visitor nor a resident - if they are visiting SAN Diego

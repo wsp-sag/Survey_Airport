@@ -41,6 +41,33 @@ class PydanticModel(BaseModel):
     """
     Base class for all Pydantic models, create in case future modifications are helpful
     """
+    
+    valid_record: bool = Field(
+        default=True, description="Indicates if the record is valid")
+    """
+    Indicates if the record is valid
+    """
+
+    validation_error: str = Field(
+        default="", description="Holds validation error messages")
+    """
+    Holds the validation error message
+    """
+
+    validation_severity: str = Field(
+        default = "", description = "Holds the severity of the validation error"
+    )
+    """
+    Holds the severity of the validation error
+    """
+
+    validation_missing_fields: int = Field(
+        default = 0, description = "Number of missing (null) fields for the record"
+    )
+    """
+    Number of missing (null) fields for the record
+    """
+
     @model_validator(mode="before")
     def convert_datetime(cls, values):
         # List of fields to validate
@@ -54,6 +81,20 @@ class PydanticModel(BaseModel):
                 values['validation_severity'] = "Low"
                 values['validation_error'] = f"{field} is datetime"
 
+        return values
+    
+    @model_validator(mode="after")
+    def validate_critical_fields(cls, values):
+        """
+        This method validates if one or nany of the critical fields are missing from the response for Air Passengers.
+        """
+        critical_fields = ['main_mode', 'origin_latitude', 'origin_longitude', 'destination_latitude', 'destination_longitude']
+        null_fields = [field for field, value in values if value is None and field in critical_fields]
+        if null_fields:
+            values.valid_record = False
+            values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
+            values.validation_missing_fields = len(null_fields)
+            values.validation_severity = 'Critical'
         return values
 
 class Lat(BaseModel):
@@ -577,6 +618,7 @@ class Trip(PydanticModel):
     Status of car availability (other than listed) for the trip to the airport
     """
 
+    pass 
 
 class Respondent(PydanticModel):
     """
@@ -913,25 +955,6 @@ class Respondent(PydanticModel):
     Details of the trip taken by the respondent.
     """
 
-    valid_record: bool = Field(
-        default=True, description="Indicates if the record is valid")
-    """
-    Indicates if the record is valid
-    """
-
-    validation_error: str = Field(
-        default="", description="Holds validation error messages")
-    """
-    Holds the validation error message
-    """
-
-    validation_severity: str = Field(
-        default = "", description = "Holds the severity of the validation error"
-    )
-    """
-    Holds the severity of the validation error
-    """
-
     weight: float = Field(
         ..., description = 'Expansion Factor of the observation'
     )
@@ -962,7 +985,6 @@ class Respondent(PydanticModel):
             values.validation_severity = "Low"
         return values
 
-        v
 
 class Employee(Respondent):
     """
@@ -1604,28 +1626,6 @@ class AirPassenger(Respondent):
     Factor which affects mode choice, for respondents who do not always used the same mode.
     """
 
-    reverse_mode: NoneOrNan[e.TravelMode] = Field(
-        ..., description = "Mode that was used in the reverse direction"
-    )
-    """
-    Mode that was used in the reverse direction.
-    """
-    pass
-
-    reverse_mode_predicted: NoneOrNan[e.TravelMode] = Field(
-        ..., description = "Mode that will be used in the reverse direction"
-    )
-    """
-    Mode that will be used in the reverse direction.
-    """
-
-    reverse_mode_predicted_other: NoneOrNanString[str] = Field(
-        ..., description = "Mode (not listed) which will be used in the reverse direction"
-    )
-    """
-    Mode (not listed) which will be used in the reverse direction
-    """
-
     sdia_transit_awareness: NoneOrNanString[e.YesNoType] = Field(
         ..., description = "Whether respondent is aware that buses are serving SDIA"
     )
@@ -1794,6 +1794,22 @@ class AirPassenger(Respondent):
     Names of airports accessed by transit.
     """
 
+    @model_validator(mode="after")
+    def validate_critical_fields(cls, values):
+        """
+        This method validates if one or nany of the critical fields are missing from the response for Air Passengers.
+        """
+        critical_fields = ['party_size_flight']
+        null_fields = [field for field, value in values if value is None and field in critical_fields]
+        if null_fields:
+            values.valid_record = False
+            values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
+            values.validation_missing_fields = len(null_fields)
+            values.validation_severity = 'Critical'
+        return values
+    pass 
+
+
 class ArrivingAirPassenger(AirPassenger):
     """
     Data model for an arriving air passenger. It includes attributes specific to arriving air passengers.
@@ -1838,7 +1854,7 @@ class ArrivingAirPassenger(AirPassenger):
 
 class DepartingAirPassenger(AirPassenger):
     """
-    Data model for an arriving air passenger. It includes attributes specific to arriving air passengers.
+    Data model for a departing air passenger. It includes attributes specific to departing air passengers.
     """
             
     @computed_field(
@@ -1880,7 +1896,7 @@ class DepartingAirPassenger(AirPassenger):
 
 class Resident():
     """
-    Data Model for a Air Passenger who is a resident of the San Deigo Region. 
+    Data Model for a Air Passenger who is a resident of the San Deigo Region. It includes attributes specific to a Resident.
     """
     
     nights_away: NoneOrNan[e.TravelDuration] = Field(
@@ -1900,7 +1916,7 @@ class Resident():
 
 class Visitor():
     """
-    Data Model for a Air Passenger who is a visitor of the San Deigo Region. 
+    Data Model for a visitor of the San Deigo Region. It includes attributes specific to a Visitor.
     """
 
     convention_center: NoneOrNanString[e.YesNoType] = Field(
@@ -2124,13 +2140,121 @@ class Visitor():
 
 
 class DepartingPassengerResident(DepartingAirPassenger, Resident):
+    """
+    Data Model for a departing air passenger who is a resident of the San Deigo Region. 
+    """
+    
+    reverse_mode_predicted: NoneOrNan[e.TravelMode] = Field(
+        ..., description = "Mode that will be used in the reverse direction"
+    )
+    """
+    Mode that will be used in the reverse direction.
+    """
+
+    reverse_mode_predicted_other: NoneOrNanString[str] = Field(
+        ..., description = "Mode (not listed) which will be used in the reverse direction"
+    )
+    """
+    Mode (not listed) which will be used in the reverse direction
+    """
+    @model_validator(mode="after")
+    def validate_missing_fields(cls, values):
+        null_fields = [field for field, value in values if value is None and 'other' not in field]
+        if null_fields:
+            values.valid_record = False
+            values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
+            values.validation_missing_fields = len(null_fields)
+            if len(null_fields)>3:
+                values.validation_severity = "High"
+            else:
+                values.validation_severity = "Low"
+        return values
     pass 
 
+
 class DepartingPassengerVisitor(DepartingAirPassenger, Visitor):
+    """
+    Data Model for a departing air passenger who is a resident of the San Deigo Region. 
+    """
+
+    reverse_mode: NoneOrNan[e.TravelMode] = Field(
+        ..., description = "Mode that was used in the reverse direction"
+    )
+    """
+    Mode that was used in the reverse direction.
+    """
+    
+    @model_validator(mode="after")
+    def validate_missing_fields(cls, values):
+        null_fields = [field for field, value in values if value is None and 'other' not in field]
+        if null_fields:
+            values.valid_record = False
+            values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
+            values.validation_missing_fields = len(null_fields)
+            if len(null_fields)>3:
+                values.validation_severity = "High"
+            else:
+                values.validation_severity = "Low"
+        return values
     pass
+
 
 class ArrivingPassengerResident(ArrivingAirPassenger, Resident):
+    """
+    Data Model for a departing air passenger who is a resident of the San Deigo Region. 
+    """
+    
+    reverse_mode: NoneOrNan[e.TravelMode] = Field(
+        ..., description = "Mode that was used in the reverse direction"
+    )
+    """
+    Mode that was used in the reverse direction.
+    """
+
+    @model_validator(mode="after")
+    def validate_missing_fields(cls, values):
+        null_fields = [field for field, value in values if value is None and 'other' not in field]
+        if null_fields:
+            values.valid_record = False
+            values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
+            values.validation_missing_fields = len(null_fields)
+            if len(null_fields)>3:
+                values.validation_severity = "High"
+            else:
+                values.validation_severity = "Low"
+        return values
     pass
 
+
 class ArrivingPassengerVisitor(ArrivingAirPassenger, Visitor):
+    """
+    Data Model for an arriving air passenger who is a visitor of the San Deigo Region. 
+    """
+
+    reverse_mode_predicted: NoneOrNan[e.TravelMode] = Field(
+        ..., description = "Mode that will be used in the reverse direction"
+    )
+    """
+    Mode that will be used in the reverse direction.
+    """
+
+    reverse_mode_predicted_other: NoneOrNanString[str] = Field(
+        ..., description = "Mode (not listed) which will be used in the reverse direction"
+    )
+    """
+    Mode (not listed) which will be used in the reverse direction
+    """
+
+    @model_validator(mode="after")
+    def validate_missing_fields(cls, values):
+        null_fields = [field for field, value in values if value is None and 'other' not in field]
+        if null_fields:
+            values.valid_record = False
+            values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
+            values.validation_missing_fields = len(null_fields)
+            if len(null_fields)>3:
+                values.validation_severity = "High"
+            else:
+                values.validation_severity = "Low"
+        return values
     pass

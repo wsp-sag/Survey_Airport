@@ -110,7 +110,7 @@ def military_to_clock(military_time):
 
 def add_synthetic_records(df):
     """
-    Adds synthetic responses to the survey. Only adds such records corresponding to Departing Passengers.
+    Adds synthetic responses (arriving passengers corresponding to departing passengers) to the survey.
     Keeps Sociodemographics and other attributes same, exchanges trip based characteristics, like modes and origin, destination related attributes.
     """
      # Create a list to store synthetic records
@@ -125,6 +125,12 @@ def add_synthetic_records(df):
             synthetic_record['respondentid'] = 'syn-' + str(row['respondentid'])
             synthetic_record['inbound_or_outbound'] = 2 if row['inbound_or_outbound'] == 1 else 1
             synthetic_record['passenger_type'] = e.PassengerType.ARRIVING
+            #to-do add resident_visitor_general:
+            if row['resident_visitor_general'] == e.ResidentVisitorGeneral.GOING_HOME:
+                synthetic_record['resident_visitor_general'] = e.ResidentVisitorGeneral.VISITING
+            elif row['resident_visitor_general'] == e.ResidentVisitorGeneral.LEAVING_HOME:
+                synthetic_record['resident_visitor_general'] = e.ResidentVisitorGeneral.COMING_HOME
+
             synthetic_record['previous_flight_origin'], synthetic_record['next_flight_destination'] = row['next_flight_destination'], row['previous_flight_origin']
 
             # Flipping the main and reverse modes:
