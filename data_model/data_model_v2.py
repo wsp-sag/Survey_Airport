@@ -82,20 +82,7 @@ class PydanticModel(BaseModel):
                 values['validation_error'] = f"{field} is datetime"
 
         return values
-    
-    @model_validator(mode="after")
-    def validate_critical_fields(cls, values):
-        """
-        This method validates if one or nany of the critical fields are missing from the response for Air Passengers.
-        """
-        critical_fields = ['main_mode', 'origin_latitude', 'origin_longitude', 'destination_latitude', 'destination_longitude']
-        null_fields = [field for field, value in values if value is None and field in critical_fields]
-        if null_fields:
-            values.valid_record = False
-            values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
-            values.validation_missing_fields = len(null_fields)
-            values.validation_severity = 'Critical'
-        return values
+
 
 class Lat(BaseModel):
     lat: Latitude
@@ -618,6 +605,22 @@ class Trip(PydanticModel):
     Status of car availability (other than listed) for the trip to the airport
     """
 
+    
+    @model_validator(mode="after")
+    def validate_missing_fields(cls, values):
+        null_fields = [field for field, value in values if value is None and 'other' not in field]
+        critical_fields = ['main_mode', 'origin_latitude', 'origin_longitude', 'destination_latitude', 'destination_longitude']
+        if null_fields:
+            values.valid_record = False
+            values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
+            values.validation_missing_fields = len(null_fields)
+            if len(null_fields)>3:
+                values.validation_severity = "High"
+            else:
+                values.validation_severity = "Low"
+            if any(field in critical_fields for field in null_fields):
+                values.validation_severity = "Critical"
+        return values
     pass 
 
 class Respondent(PydanticModel):
@@ -695,61 +698,6 @@ class Respondent(PydanticModel):
     Whether the respondent is of a qualified age to participate in the survey.
     """
 
-    # is_qualified_not_connecting: NoneOrNanString[bool] = Field(
-    #     ...,
-    #     description="Whether the respondent is traveling to the airport and therefore qualified to participate in the survey",
-    # )
-    # """
-    # Whether the respondent is traveling to the airport and therefore 
-    # """
-
-    resident_visitor_general: NoneOrNan[e.ResidentVisitorGeneral] = Field(
-        ...,
-        description="Whether a resident or a visitor of the San deigo airport service area",
-    )
-    """
-    Whether a resident or a visitor of the San deigo airport service area.
-    """
-
-    resident_visitor_followup: NoneOrNanString[e.ResidentVisitorFollowup] = Field(
-        ...,
-        description="If neither a resident or a visitor, whether the respondent is visiting San Diego",
-    )
-    """
-    If neither a resident or a visitor, whether the respondent is visiting San Diego.
-    """
-
-    resident_visitor_arriving: NoneOrNanString[bool] = Field(
-        ..., description = "True if respondent lives outside San Diego Region and is going home by ground transportation"
-    )
-
-    """
-    True if respondent lives outside San Diego Region and is going home by ground transportation
-    """
-    resident_visitor: NoneOrNan[e.ResidentVisitor] = Field(
-        ...,
-        description="Where the respondent resides in the airport service area most of the year",
-    )
-    """
-    Where the respondent resides in the airport service area most of the year.
-    """
-
-    country_of_residence: NoneOrNan[e.Country] = Field(
-        ...,
-        description="Country of residence for international vistors",
-    )
-    """
-    Country of residence for international vistors.
-    """
-
-    state_of_residence: NoneOrNan[e.State] = Field(
-        ...,
-        description="State of residence for US and Mexico residents",
-    )
-    """
-    State of residence for US and Mexico residents.
-    """
-
  #Add new here
     # home_location_address: NoneOrNanString[str] =  Field(
     #     ..., description = "Street Address of the home location of the respondent"
@@ -757,41 +705,6 @@ class Respondent(PydanticModel):
     # """
     # Street Address of the home location of the respondent
     # """
-
-    home_location_city: NoneOrNanString[str] =  Field(
-        ..., description = "City of the home location of the respondent"
-    )
-    """
-    City of the home location of the respondent
-    """
-
-    home_location_state: NoneOrNanString[str] =  Field(
-        ..., description = "State of the home location of the respondent"
-    )
-    """
-    State of the home location of the respondent
-    """
-
-    home_location_zip: NoneOrNanString[Union[str,int]] =  Field(
-        ..., description = "ZIP of the home location of the respondent"
-    )
-    """
-    ZIP of the home location of the respondent
-    """
-
-    home_location_latitude: NoneOrNanString[Latitude] =  Field(
-        ..., description = "Latitude of the home location of the respondent"
-    )
-    """
-    Latitude of the home location of the respondent
-    """
-
-    home_location_longitude: NoneOrNanString[Longitude]=   Field(
-        ..., description = "Longitude of the home location of the respondent"
-    )
-    """
-    Longitude of the home location of the respondent
-    """
 
     age: NoneOrNan[e.Age] = Field(..., description="Age category of the respondent")
     """
@@ -1280,11 +1193,108 @@ class Employee(Respondent):
     Whether the respondent has access to employee parking.
     """
 
-
+    @model_validator(mode="after")
+    def validate_missing_fields(cls, values):
+        null_fields = [field for field, value in values if value is None and 'other' not in field]
+        critical_fields = []
+        if null_fields:
+            values.valid_record = False
+            values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
+            values.validation_missing_fields = len(null_fields)
+            if len(null_fields)>3:
+                values.validation_severity = "High"
+            else:
+                values.validation_severity = "Low"
+            if any(field in critical_fields for field in null_fields):
+                values.validation_severity = "Critical"
+        return values
 
 class AirPassenger(Respondent):
     """
     Data model for an air passenger respondent. It includes attributes specific to air passengers.
+    """
+
+    resident_visitor_general: NoneOrNan[e.ResidentVisitorGeneral] = Field(
+        ...,
+        description="Whether a resident or a visitor of the San deigo airport service area",
+    )
+    """
+    Whether a resident or a visitor of the San deigo airport service area.
+    """
+
+    resident_visitor_followup: NoneOrNanString[e.ResidentVisitorFollowup] = Field(
+        ...,
+        description="If neither a resident or a visitor, whether the respondent is visiting San Diego",
+    )
+    """
+    If neither a resident or a visitor, whether the respondent is visiting San Diego.
+    """
+
+    resident_visitor_arriving: NoneOrNanString[bool] = Field(
+        ..., description = "True if respondent lives outside San Diego Region and is going home by ground transportation"
+    )
+
+    """
+    True if respondent lives outside San Diego Region and is going home by ground transportation
+    """
+    
+    resident_visitor: NoneOrNan[e.ResidentVisitor] = Field(
+        ...,
+        description="Where the respondent resides in the airport service area most of the year",
+    )
+    """
+    Where the respondent resides in the airport service area most of the year.
+    """
+
+    country_of_residence: NoneOrNan[e.Country] = Field(
+        ...,
+        description="Country of residence for international vistors",
+    )
+    """
+    Country of residence for international vistors.
+    """
+
+    state_of_residence: NoneOrNan[e.State] = Field(
+        ...,
+        description="State of residence for US and Mexico residents",
+    )
+    """
+    State of residence for US and Mexico residents.
+    """
+    
+    home_location_city: NoneOrNanString[str] =  Field(
+        ..., description = "City of the home location of the respondent"
+    )
+    """
+    City of the home location of the respondent
+    """
+
+    home_location_state: NoneOrNanString[str] =  Field(
+        ..., description = "State of the home location of the respondent"
+    )
+    """
+    State of the home location of the respondent
+    """
+
+    home_location_zip: NoneOrNanString[Union[str,int]] =  Field(
+        ..., description = "ZIP of the home location of the respondent"
+    )
+    """
+    ZIP of the home location of the respondent
+    """
+
+    home_location_latitude: NoneOrNanString[Latitude] =  Field(
+        ..., description = "Latitude of the home location of the respondent"
+    )
+    """
+    Latitude of the home location of the respondent
+    """
+
+    home_location_longitude: NoneOrNanString[Longitude]=   Field(
+        ..., description = "Longitude of the home location of the respondent"
+    )
+    """
+    Longitude of the home location of the respondent
     """
 
     passenger_type: NoneOrNanString[e.PassengerType] = Field(
@@ -1793,20 +1803,7 @@ class AirPassenger(Respondent):
     """
     Names of airports accessed by transit.
     """
-
-    @model_validator(mode="after")
-    def validate_critical_fields(cls, values):
-        """
-        This method validates if one or nany of the critical fields are missing from the response for Air Passengers.
-        """
-        critical_fields = ['party_size_flight']
-        null_fields = [field for field, value in values if value is None and field in critical_fields]
-        if null_fields:
-            values.valid_record = False
-            values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
-            values.validation_missing_fields = len(null_fields)
-            values.validation_severity = 'Critical'
-        return values
+    
     pass 
 
 
@@ -2157,9 +2154,11 @@ class DepartingPassengerResident(DepartingAirPassenger, Resident):
     """
     Mode (not listed) which will be used in the reverse direction
     """
+
     @model_validator(mode="after")
     def validate_missing_fields(cls, values):
         null_fields = [field for field, value in values if value is None and 'other' not in field]
+        critical_fields = ['party_size_flight']
         if null_fields:
             values.valid_record = False
             values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
@@ -2168,6 +2167,8 @@ class DepartingPassengerResident(DepartingAirPassenger, Resident):
                 values.validation_severity = "High"
             else:
                 values.validation_severity = "Low"
+            if any(field in critical_fields for field in null_fields):
+                values.validation_severity = "Critical"
         return values
     pass 
 
@@ -2187,6 +2188,7 @@ class DepartingPassengerVisitor(DepartingAirPassenger, Visitor):
     @model_validator(mode="after")
     def validate_missing_fields(cls, values):
         null_fields = [field for field, value in values if value is None and 'other' not in field]
+        critical_fields = ['party_size_flight']
         if null_fields:
             values.valid_record = False
             values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
@@ -2195,6 +2197,8 @@ class DepartingPassengerVisitor(DepartingAirPassenger, Visitor):
                 values.validation_severity = "High"
             else:
                 values.validation_severity = "Low"
+            if any(field in critical_fields for field in null_fields):
+                values.validation_severity = "Critical"
         return values
     pass
 
@@ -2214,6 +2218,7 @@ class ArrivingPassengerResident(ArrivingAirPassenger, Resident):
     @model_validator(mode="after")
     def validate_missing_fields(cls, values):
         null_fields = [field for field, value in values if value is None and 'other' not in field]
+        critical_fields = ['party_size_flight']
         if null_fields:
             values.valid_record = False
             values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
@@ -2222,6 +2227,8 @@ class ArrivingPassengerResident(ArrivingAirPassenger, Resident):
                 values.validation_severity = "High"
             else:
                 values.validation_severity = "Low"
+            if any(field in critical_fields for field in null_fields):
+                values.validation_severity = "Critical"
         return values
     pass
 
@@ -2248,6 +2255,7 @@ class ArrivingPassengerVisitor(ArrivingAirPassenger, Visitor):
     @model_validator(mode="after")
     def validate_missing_fields(cls, values):
         null_fields = [field for field, value in values if value is None and 'other' not in field]
+        critical_fields = ['party_size_flight']
         if null_fields:
             values.valid_record = False
             values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
@@ -2256,5 +2264,7 @@ class ArrivingPassengerVisitor(ArrivingAirPassenger, Visitor):
                 values.validation_severity = "High"
             else:
                 values.validation_severity = "Low"
+            if any(field in critical_fields for field in null_fields):
+                values.validation_severity = "Critical"
         return values
     pass
