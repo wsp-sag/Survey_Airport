@@ -170,3 +170,4 @@ data/interim/survey_expanded_v2_depart.csv
 data/interim/survey_expanded_v3_depart.csv
 data/processed/data_model_output.csv
 data/processed/failed_records.csv
+.Rproj.user
