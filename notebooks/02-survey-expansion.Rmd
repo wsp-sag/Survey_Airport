@@ -17,13 +17,19 @@ for (package in packages_vector) {
 
 ```
 
+```{r wd}
+print(getwd())
+```
+
 # Remote I/O
 ```{r remote-io}
-processed_dir <- "./data/processed/"
-interim_dir <- "./data/interim/"
-output_dir <- "./data/interim/"
+setwd("/Users/wsp/Documents/GitHub/Survey_Airport/notebooks/")
 
-config_file <- paste0(interim_dir, "expansion_config_departing_and_arriving.yaml")
+processed_dir <- "../data/processed/"
+interim_dir <- "../data/interim/"
+output_dir <- "../data/interim/"
+
+config_file <- paste0(interim_dir, "expansion_config_departing_only.yaml")
 
 script_config <- yaml.load_file(config_file)
 

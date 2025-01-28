@@ -1,0 +1,16 @@
+input:
+  survey_file: "data_model_output.csv"
+  controls_file: "expansion_controls_departing_only.csv"
+  config_file: "expansion_controls_expressions_departing_only.csv"
+
+output:
+  survey_expanded_file: "survey_expanded_departing_only.csv"
+  stat_file: "convergence_stat_departing_only.csv"
+  rfac_file: "rfac_all_departing_only.csv"
+  weights_only_file: "survey_weights_only_departing_only.csv"
+
+parameters:
+  max_iteration: 50 
+  scaling_factor_low : 100
+  scaling_factor_high : 100
+  departing_only: TRUE
