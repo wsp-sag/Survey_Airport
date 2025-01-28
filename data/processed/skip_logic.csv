@@ -1,0 +1,17 @@
+﻿class,condition_variable,condition_value,check_type,check_variables,check_values,severity
+DepartingPassengerVisitor,convention_center,1,missing,convention_center_activity,,Moderate
+ArrivingPassengerVisitor,convention_center,1,missing,convention_center_activity,,Moderate
+Employee,,,critical,number_commute_days,,Moderate
+ArrivingPassengerResident,,,critical,party_size_ground_access,,Critical
+ArrivingPassengerVisitor,,,critical,party_size_ground_access,,Critical
+DepartingPassengerResident,,,critical,party_size_ground_access,,Critical
+DepartingPassengerVisitor,,,critical,party_size_ground_access,,Critical
+ArrivingPassengerResident,,,critical,party_size_flight,,Critical
+ArrivingPassengerVisitor,,,critical,party_size_flight,,Critical
+DepartingPassengerResident,,,critical,party_size_flight,,Critical
+DepartingPassengerVisitor,,,critical,party_size_flight,,Critical
+Trip,,,critical,main_mode,,Critical
+Trip,inbound_or_outbound,2,critical,destination_latitude,,Critical
+Trip,inbound_or_outbound,2,critical,destination_longitude,,Critical
+Trip,inbound_or_outbound,1,critical,origin_latitude,,Critical
+Trip,inbound_or_outbound,1,critical,origin_longitude,,Critical

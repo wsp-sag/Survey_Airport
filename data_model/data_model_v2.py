@@ -9,7 +9,7 @@ from typing import Annotated, Any, ClassVar, Literal, Optional, TypeVar, Union, 
 from pydantic import (BaseModel, BeforeValidator, Field, computed_field,
                       field_validator, model_validator)
 from pydantic_extra_types.coordinate import Coordinate, Latitude, Longitude
-
+import pandas as pd
 import enums as e
 import re
 
@@ -37,6 +37,72 @@ NoneOrNan = Annotated[Optional[T], BeforeValidator(coerce_nan_to_none)]
 NoneOrNanString = Annotated[Optional[T], BeforeValidator(coerce_nan_string_to_none)]
 
 
+class SkipLogicValidator:
+    def __init__(self, skip_logic_csv):
+        self.rules = pd.read_csv(skip_logic_csv)
+    
+    def get_rules_for_class(self, class_name):
+        """Filter skip logic rules for a specific class."""
+        return self.rules[self.rules['class'] == class_name]
+    
+    def validate(self, class_name, data):
+        """Validate data using skip logic rules for a specific class."""
+        errors = []
+        severity_levels = {"Low": 0, "Moderate": 0, "High": 0, "Critical": 0}  # Track severity levels
+        
+        rules = self.get_rules_for_class(class_name)
+        
+        for _, rule in rules.iterrows():
+            # Extract rule details
+            condition_variable = rule['condition_variable']
+            condition_value = rule['condition_value']
+            check_type = rule['check_type']
+            check_variables = rule['check_variables'].split(',')
+            check_values = rule['check_values'].split(',') if pd.notna(rule['check_values']) else []
+            severity = rule['severity']
+            
+            # Perform validation based on check_type
+            if check_type == "critical":
+                # Check fields directly for missing values
+                if self.perform_critical_check(data, check_variables):
+                    errors.append(f"{', '.join(check_variables)}: {severity}")
+                    severity_levels[severity] += 1
+            elif check_type in ["missing", "value"]:
+                # Conditional validation
+                if condition_variable in data and data[condition_variable] == condition_value:
+                    if not self.perform_check(data, check_type, check_variables, check_values):
+                        errors.append(f"{', '.join(check_variables)}: {severity}")
+                        severity_levels[severity] += 1
+        
+        return errors, severity_levels, len(errors)
+    
+    def perform_critical_check(self, data, check_variables):
+        """
+        Check if any of the critical fields are missing.
+        Returns True if any field is missing, False otherwise.
+        """
+        for var in check_variables:
+            if var not in data or data[var] is None:
+                # Log which variable failed the critical check
+                print(f"Critical check failed for variable: {var}")
+                return True  # A missing field causes the critical check to fail
+        return False  # All fields are present
+    
+    def perform_check(self, data, check_type, check_variables, check_values):
+        """Perform the validation check based on the check_type."""
+        if check_type == "missing":
+            # Return False if any of the variables are missing
+            return all(var in data and data[var] is not None for var in check_variables)
+        elif check_type == "value":
+            # Return False if any of the variables do not match the expected values
+            return all(var in data and data[var] in check_values for var in check_variables)
+        return True
+
+
+
+skip_logic_validator = SkipLogicValidator("../data/processed/skip_logic.csv")
+
+
 class PydanticModel(BaseModel):
     """
     Base class for all Pydantic models, create in case future modifications are helpful
@@ -61,7 +127,7 @@ class PydanticModel(BaseModel):
     Holds the severity of the validation error
     """
 
-    validation_missing_fields: int = Field(
+    validation_num_errors: int = Field(
         default = 0, description = "Number of missing (null) fields for the record"
     )
     """
@@ -82,6 +148,8 @@ class PydanticModel(BaseModel):
                 values['validation_error'] = f"{field} is datetime"
 
         return values
+
+
 
 
 class Lat(BaseModel):
@@ -591,36 +659,30 @@ class Trip(PydanticModel):
     Longitude of the stop where respondent boarded the main transit mode
     """
 
-    car_available: NoneOrNanString[e.CarAvailability] = Field(
-        ..., description = "Status of car availability for the trip to the airport"
-    )
-    """
-    Status of car availability for the trip to the airport
-    """
-
-    car_available_other: NoneOrNanString[str] = Field(
-        ..., description = "Status of car availability (other than listed) for the trip to the airport"
-    )
-    """
-    Status of car availability (other than listed) for the trip to the airport
-    """
-
     
     @model_validator(mode="after")
-    def validate_missing_fields(cls, values):
-        null_fields = [field for field, value in values if value is None and 'other' not in field]
-        critical_fields = ['main_mode', 'origin_latitude', 'origin_longitude', 'destination_latitude', 'destination_longitude']
-        if null_fields:
-            values.valid_record = False
-            values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
-            values.validation_missing_fields = len(null_fields)
-            if len(null_fields)>3:
-                values.validation_severity = "High"
-            else:
-                values.validation_severity = "Low"
-            if any(field in critical_fields for field in null_fields):
-                values.validation_severity = "Critical"
+    def validate_visitor(cls, values):
+        # Validate using SkipLogicValidator
+        errors, severity_levels, num_errors = skip_logic_validator.validate("Trip", values.dict())
+        # Update validation fields
+        values.valid_record = len(errors) == 0
+        values.validation_error = errors
+        values.validation_severity = cls.determine_severity(severity_levels)
+        values.validation_num_errors = num_errors
+        
         return values
+    
+    @staticmethod
+    def determine_severity(severity_levels):
+        if severity_levels["Critical"] > 0:
+            return "Critical"
+        elif severity_levels["High"] > 0:
+            return "High"
+        elif severity_levels["Moderate"] > 0:
+            return "Moderate"
+        elif severity_levels["Low"] > 0:
+            return "Low"
+        return "None"
     pass 
 
 class Respondent(PydanticModel):
@@ -628,6 +690,12 @@ class Respondent(PydanticModel):
     Data model for a survey respondent. It includes attributes common to air passengers and employees.
     """
 
+    is_self_administered: bool = Field(
+        default = False, description = "True if the survey was self-administered by the respondent")
+    """
+    True if the survey was self-administered by the respondent.
+    """
+    
     respondentid: Union[int,str] = Field(
         ..., description="Unique identifier for the respondent")
     """
@@ -939,7 +1007,6 @@ class Employee(Respondent):
     Name (not listed) of respondent's employer.
     """
 
-
     occupation: NoneOrNanString[e.Occupations] = Field(
         ..., description = "Occupation of the employee"
     )
@@ -1193,21 +1260,46 @@ class Employee(Respondent):
     Whether the respondent has access to employee parking.
     """
 
+    # @model_validator(mode="after")
+    # def validate_missing_fields(cls, values):
+    #     null_fields = [field for field, value in values if value is None and 'other' not in field]
+    #     critical_fields = []
+    #     if null_fields:
+    #         values.valid_record = False
+    #         values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
+    #         values.validation_num_errors = len(null_fields)
+    #         if len(null_fields)>3:
+    #             values.validation_severity = "High"
+    #         else:
+    #             values.validation_severity = "Low"
+    #         if any(field in critical_fields for field in null_fields):
+    #             values.validation_severity = "Critical"
+    #     return values
+    
     @model_validator(mode="after")
-    def validate_missing_fields(cls, values):
-        null_fields = [field for field, value in values if value is None and 'other' not in field]
-        critical_fields = []
-        if null_fields:
-            values.valid_record = False
-            values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
-            values.validation_missing_fields = len(null_fields)
-            if len(null_fields)>3:
-                values.validation_severity = "High"
-            else:
-                values.validation_severity = "Low"
-            if any(field in critical_fields for field in null_fields):
-                values.validation_severity = "Critical"
+    def validate_visitor(cls, values):
+        # Validate using SkipLogicValidator
+        errors, severity_levels, num_errors = skip_logic_validator.validate("Employee", values.dict())
+        
+        # Update validation fields
+        values.valid_record = len(errors) == 0
+        values.validation_error = errors
+        values.validation_severity = cls.determine_severity(severity_levels)
+        values.validation_num_errors = num_errors
+        
         return values
+    
+    @staticmethod
+    def determine_severity(severity_levels):
+        if severity_levels["Critical"] > 0:
+            return "Critical"
+        elif severity_levels["High"] > 0:
+            return "High"
+        elif severity_levels["Moderate"] > 0:
+            return "Moderate"
+        elif severity_levels["Low"] > 0:
+            return "Low"
+        return "None"
 
 class AirPassenger(Respondent):
     """
@@ -1951,6 +2043,80 @@ class Visitor():
     General transit use frequency by visitors of San Diego region when home.
     """
 
+    pass
+
+
+
+class DepartingPassengerResident(DepartingAirPassenger, Resident):
+    """
+    Data Model for a departing air passenger who is a resident of the San Deigo Region. 
+    """
+    car_available: NoneOrNanString[e.CarAvailability] = Field(
+        ..., description = "Status of car availability for the trip to the airport"
+    )
+    """
+    Status of car availability for the trip to the airport
+    """
+
+    car_available_other: NoneOrNanString[str] = Field(
+        ..., description = "Status of car availability (other than listed) for the trip to the airport"
+    )
+    """
+    Status of car availability (other than listed) for the trip to the airport
+    """
+    
+    reverse_mode_predicted: NoneOrNan[e.TravelMode] = Field(
+        ..., description = "Mode that will be used in the reverse direction"
+    )
+    """
+    Mode that will be used in the reverse direction.
+    """
+
+    reverse_mode_predicted_other: NoneOrNanString[str] = Field(
+        ..., description = "Mode (not listed) which will be used in the reverse direction"
+    )
+    """
+    Mode (not listed) which will be used in the reverse direction
+    """
+
+    @model_validator(mode="after")
+    def validate_visitor(cls, values):
+        # Validate using SkipLogicValidator
+        errors, severity_levels, num_errors = skip_logic_validator.validate("DepartingpassengerResident", values.dict())
+        # Update validation fields
+        values.valid_record = len(errors) == 0
+        values.validation_error = errors
+        values.validation_severity = cls.determine_severity(severity_levels)
+        values.validation_num_errors = num_errors
+        
+        return values
+    
+    @staticmethod
+    def determine_severity(severity_levels):
+        if severity_levels["Critical"] > 0:
+            return "Critical"
+        elif severity_levels["High"] > 0:
+            return "High"
+        elif severity_levels["Moderate"] > 0:
+            return "Moderate"
+        elif severity_levels["Low"] > 0:
+            return "Low"
+        return "None"
+    pass 
+
+
+class DepartingPassengerVisitor(DepartingAirPassenger, Visitor):
+
+    """
+    Data Model for a departing air passenger who is a resident of the San Deigo Region. 
+    """
+
+    reverse_mode: NoneOrNan[e.TravelMode] = Field(
+        ..., description = "Mode that was used in the reverse direction"
+    )
+    """
+    Mode that was used in the reverse direction.
+    """
     general_modes_used_visitor_taxi: NoneOrNanString[bool] = Field(
         ..., description = "True if the visitor used Taxi as a mode during their visit to the San Diego Region"
     )
@@ -2132,74 +2298,30 @@ class Visitor():
     """
     Other mode used by the visitor during their visit to the San Diego Region.
     """
-    pass
-
-
-
-class DepartingPassengerResident(DepartingAirPassenger, Resident):
-    """
-    Data Model for a departing air passenger who is a resident of the San Deigo Region. 
-    """
-    
-    reverse_mode_predicted: NoneOrNan[e.TravelMode] = Field(
-        ..., description = "Mode that will be used in the reverse direction"
-    )
-    """
-    Mode that will be used in the reverse direction.
-    """
-
-    reverse_mode_predicted_other: NoneOrNanString[str] = Field(
-        ..., description = "Mode (not listed) which will be used in the reverse direction"
-    )
-    """
-    Mode (not listed) which will be used in the reverse direction
-    """
-
-    @model_validator(mode="after")
-    def validate_missing_fields(cls, values):
-        null_fields = [field for field, value in values if value is None and 'other' not in field]
-        critical_fields = ['party_size_flight']
-        if null_fields:
-            values.valid_record = False
-            values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
-            values.validation_missing_fields = len(null_fields)
-            if len(null_fields)>3:
-                values.validation_severity = "High"
-            else:
-                values.validation_severity = "Low"
-            if any(field in critical_fields for field in null_fields):
-                values.validation_severity = "Critical"
-        return values
-    pass 
-
-
-class DepartingPassengerVisitor(DepartingAirPassenger, Visitor):
-    """
-    Data Model for a departing air passenger who is a resident of the San Deigo Region. 
-    """
-
-    reverse_mode: NoneOrNan[e.TravelMode] = Field(
-        ..., description = "Mode that was used in the reverse direction"
-    )
-    """
-    Mode that was used in the reverse direction.
-    """
     
     @model_validator(mode="after")
-    def validate_missing_fields(cls, values):
-        null_fields = [field for field, value in values if value is None and 'other' not in field]
-        critical_fields = ['party_size_flight']
-        if null_fields:
-            values.valid_record = False
-            values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
-            values.validation_missing_fields = len(null_fields)
-            if len(null_fields)>3:
-                values.validation_severity = "High"
-            else:
-                values.validation_severity = "Low"
-            if any(field in critical_fields for field in null_fields):
-                values.validation_severity = "Critical"
+    def validate_visitor(cls, values):
+        # Validate using SkipLogicValidator
+        errors, severity_levels, num_errors = skip_logic_validator.validate("DepartingPassengerVisitor", values.dict())
+        # Update validation fields
+        values.valid_record = len(errors) == 0
+        values.validation_error = errors
+        values.validation_severity = cls.determine_severity(severity_levels)
+        values.validation_num_errors = num_errors
+        
         return values
+    
+    @staticmethod
+    def determine_severity(severity_levels):
+        if severity_levels["Critical"] > 0:
+            return "Critical"
+        elif severity_levels["High"] > 0:
+            return "High"
+        elif severity_levels["Moderate"] > 0:
+            return "Moderate"
+        elif severity_levels["Low"] > 0:
+            return "Low"
+        return "None"
     pass
 
 
@@ -2216,20 +2338,29 @@ class ArrivingPassengerResident(ArrivingAirPassenger, Resident):
     """
 
     @model_validator(mode="after")
-    def validate_missing_fields(cls, values):
-        null_fields = [field for field, value in values if value is None and 'other' not in field]
-        critical_fields = ['party_size_flight']
-        if null_fields:
-            values.valid_record = False
-            values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
-            values.validation_missing_fields = len(null_fields)
-            if len(null_fields)>3:
-                values.validation_severity = "High"
-            else:
-                values.validation_severity = "Low"
-            if any(field in critical_fields for field in null_fields):
-                values.validation_severity = "Critical"
+    def validate_visitor(cls, values):
+        # Validate using SkipLogicValidator
+        errors, severity_levels, num_errors = skip_logic_validator.validate("ArrivingPassengerResident", values.dict())
+        # Update validation fields
+        values.valid_record = len(errors) == 0
+        values.validation_error = errors
+        values.validation_severity = cls.determine_severity(severity_levels)
+        values.validation_num_errors = num_errors
+        
         return values
+    
+    @staticmethod
+    def determine_severity(severity_levels):
+        if severity_levels["Critical"] > 0:
+            return "Critical"
+        elif severity_levels["High"] > 0:
+            return "High"
+        elif severity_levels["Moderate"] > 0:
+            return "Moderate"
+        elif severity_levels["Low"] > 0:
+            return "Low"
+        return "None"
+    
     pass
 
 
@@ -2252,19 +2383,45 @@ class ArrivingPassengerVisitor(ArrivingAirPassenger, Visitor):
     Mode (not listed) which will be used in the reverse direction
     """
 
+    # @model_validator(mode="after")
+    # def validate_missing_fields(cls, values):
+    #     null_fields = [field for field, value in values if value is None and 'other' not in field]
+    #     critical_fields = ['party_size_flight']
+    #     if null_fields:
+    #         values.valid_record = False
+    #         values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
+    #         values.validation_num_errors = len(null_fields)
+    #         if len(null_fields)>3:
+    #             values.validation_severity = "High"
+    #         else:
+    #             values.validation_severity = "Low"
+    #         if any(field in critical_fields for field in null_fields):
+    #             values.validation_severity = "Critical"
+    #     return values
+
     @model_validator(mode="after")
-    def validate_missing_fields(cls, values):
-        null_fields = [field for field, value in values if value is None and 'other' not in field]
-        critical_fields = ['party_size_flight']
-        if null_fields:
-            values.valid_record = False
-            values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
-            values.validation_missing_fields = len(null_fields)
-            if len(null_fields)>3:
-                values.validation_severity = "High"
-            else:
-                values.validation_severity = "Low"
-            if any(field in critical_fields for field in null_fields):
-                values.validation_severity = "Critical"
+    def validate_visitor(cls, values):
+        # Validate using SkipLogicValidator
+        errors, severity_levels, num_errors = skip_logic_validator.validate("ArrivingPassengerVisitor", values.dict())
+        
+        # Update validation fields
+        values.valid_record = len(errors) == 0
+        values.validation_error = errors
+        values.validation_severity = cls.determine_severity(severity_levels)
+        values.validation_num_errors = num_errors
+        
         return values
+    
+    @staticmethod
+    def determine_severity(severity_levels):
+        if severity_levels["Critical"] > 0:
+            return "Critical"
+        elif severity_levels["High"] > 0:
+            return "High"
+        elif severity_levels["Moderate"] > 0:
+            return "Moderate"
+        elif severity_levels["Low"] > 0:
+            return "Low"
+        return "None"
+    
     pass
