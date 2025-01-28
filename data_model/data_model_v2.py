@@ -232,6 +232,20 @@ class Trip(PydanticModel):
     Longitude coordinate of the origin address for the trip to the airport.
     """
 
+    origin_municipal_zone: NoneOrNanString[str] = Field(
+        ..., description="Municipal zone of the origin address for the trip to the airport"
+    )
+    """
+    Municipal zone of the origin address for the trip to the airport
+    """
+
+    origin_pmsa: NoneOrNanString[int] = Field(
+        ..., description="Pseudo MSA of the origin address for the trip to the airport"
+    )
+    """
+    Pseudo MSA of the origin address for the trip to the airport
+    """
+    
     destination_activity_type: NoneOrNanString[e.ActivityType] = Field(
         ...,
         description="Activity type at the destination of the trip from the airport",
@@ -301,6 +315,20 @@ class Trip(PydanticModel):
     )
     """
     Longitude coordinate of the destination address from the airport.
+    """
+    
+    destination_municipal_zone: NoneOrNanString[str] = Field(
+        ..., description="Municipal zone of the destination address for the trip to the airport"
+    )
+    """
+    Municipal zone of the destination address for the trip to the airport
+    """
+
+    destination_pmsa: NoneOrNanString[int] = Field(
+        ..., description="Pseudo MSA of the destination address for the trip to the airport"
+    )
+    """
+    Pseudo MSA of the origin destination for the trip to the airport
     """
 
     main_transit_mode: NoneOrNanString[e.TravelMode] = Field(
@@ -1336,6 +1364,19 @@ class AirPassenger(Respondent):
     )
     """
     Where the respondent resides in the airport service area most of the year.
+    """
+
+    passenger_segment: NoneOrNan[e.PassengerSegment] = Field(
+        ..., description="Segment of the air passenger: (Resident/Visitor and Arriving/Departing)"
+    )
+    """
+    Segment of the air passenger: (Resident/Visitor and Arriving/Departing)
+    """
+
+    qualified_visitor: NoneOrNan[bool] = Field( 
+        ..., description = "True if the respondent is a qualified visitor")
+    """
+    True if the respondent is a qualified visitor.
     """
 
     country_of_residence: NoneOrNan[e.Country] = Field(

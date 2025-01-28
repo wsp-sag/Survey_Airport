@@ -47,6 +47,16 @@ class PassengerType(IntEnum):
     CONNECTING = 3
 
 
+class PassengerSegment(IntEnum):
+    """
+    Integer Mapping for type of passenger segment
+    """
+    RESIDENT_ARRIVING = 1
+    RESIDENT_DEPARTING = 2
+    VISITOR_ARRIVING = 3
+    VISITOR_DEPARTING = 4
+
+
 class ResidentVisitorGeneral(IntEnum):
     """
     Integer Mapping for the respondent if they are resident, visitor or neither. First option if departing, second if arriving

@@ -8,6 +8,59 @@ from enum import Enum, IntEnum
 import pandas as pd
 import enums as e
 
+import geopandas as gpd
+from shapely.geometry import Point
+
+def map_zones(df, lat_col, long_col, shapefile, zone_column, external_zone_value):
+    """
+    Maps coordinates in a DataFrame to zones defined in a shapefile.
+
+    Args:
+        data (pd.DataFrame): Input DataFrame with latitude and longitude columns.
+        lat_col (str): Column name for latitude in the DataFrame.
+        long_col (str): Column name for longitude in the DataFrame.
+        shapefile (str): Path to the shapefile containing zone geometries.
+        zone_column (str): Column name in the shapefile that contains zone names.
+
+    Returns:
+        pd.Series: A Series with zone names mapped to each row in the DataFrame.
+    """
+    # Load the shapefile into a GeoDataFrame
+    zones_gdf = gpd.read_file(shapefile)
+    
+    # Ensure the shapefile has a consistent CRS (WGS84)
+    zones_gdf = zones_gdf.to_crs(epsg=4326)
+    data = df.copy()
+    # Add a geometry column to the DataFrame for spatial joining
+    data["geometry"] = data.apply(
+        lambda row: Point(row[long_col], row[lat_col]) 
+        if pd.notnull(row[long_col]) and pd.notnull(row[lat_col]) else None, 
+        axis=1
+    )
+    
+    # Convert the DataFrame to a GeoDataFrame
+    data_gdf = gpd.GeoDataFrame(data, geometry="geometry", crs="EPSG:4326")
+    
+    # Perform a spatial join to map points to zones
+    mapped_gdf = gpd.sjoin(data_gdf, zones_gdf, how="left", predicate="within")
+    
+    # Check if the zone_column is of integer type
+    is_zone_int = pd.api.types.is_integer_dtype(zones_gdf[zone_column])
+    
+    # Map zone names, handling cases where coordinates are missing or no match is found
+    def get_zone(row):
+        if pd.isnull(row[lat_col]) or pd.isnull(row[long_col]):
+            return None  # Blank if coordinates are missing
+        elif pd.isnull(row[zone_column]):
+            return external_zone_value # 99 for int zone_column, EXTERNAL for others
+        else:
+            return row[zone_column]  # Return the matched zone name
+
+    # Apply the function to determine the zone for each row
+    return mapped_gdf.apply(get_zone, axis=1)
+
+
+
 def extract_base_type(typ):
     """
     Extracts base type from complex annotations. This is needed to identify whether a variable 
