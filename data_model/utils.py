@@ -184,10 +184,15 @@ def add_synthetic_records(df):
             elif row['resident_visitor_general'] == e.ResidentVisitorGeneral.LEAVING_HOME:
                 synthetic_record['resident_visitor_general'] = e.ResidentVisitorGeneral.COMING_HOME
 
+            if row['passenger_segment'] == e.PassengerSegment.RESIDENT_DEPARTING:
+                synthetic_record['passenger_segment'] = e.PassengerSegment.RESIDENT_ARRIVING
+            elif row['passenger_segment'] == e.PassengerSegment.VISITOR_DEPARTING:
+                synthetic_record['passenger_segment'] = e.PassengerSegment.VISITOR_ARRIVING
+
             synthetic_record['previous_flight_origin'], synthetic_record['next_flight_destination'] = row['next_flight_destination'], row['previous_flight_origin']
 
             # Flipping the main and reverse modes:
-            if row['reverse_mode']:
+            if pd.notna(row['reverse_mode']) or row['reverse_mode']:
                 synthetic_record['main_mode'], synthetic_record['reverse_mode'] = row['reverse_mode'], row['main_mode']
             else:
                 synthetic_record['main_mode'], synthetic_record['reverse_mode_predicted'] = row['reverse_mode_predicted'], row['main_mode']
@@ -203,6 +208,11 @@ def add_synthetic_records(df):
             synthetic_record['origin_state'], synthetic_record['destination_state'] = row['destination_state'], row['origin_state']
             synthetic_record['origin_city'], synthetic_record['destination_city'] = row['destination_city'], row['origin_city']
             synthetic_record['origin_zip'], synthetic_record['destination_zip'] = row['destination_zip'], row['origin_zip']
+
+            synthetic_record['origin_latitude'], synthetic_record['destination_latitude'] = row['destination_latitude'], row['origin_latitude']
+            synthetic_record['origin_longitude'], synthetic_record['destination_longitude'] = row['destination_longitude'], row['origin_longitude']
+            synthetic_record['origin_municipal_zone'], synthetic_record['destination_municipal_zone'] = row['destination_municipal_zone'], row['origin_municipal_zone']
+            synthetic_record['origin_pmsa'], synthetic_record['destination_pmsa'] = row['destination_pmsa'], row['origin_pmsa']
 
 
             #synthetic_record['to_airport_transit_route_1'], synthetic_record['from_airport_transit_route_4'] = row['from_airport_transit_route_4'], row['to_airport_transit_route_1']

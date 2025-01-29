@@ -48,17 +48,17 @@ class SkipLogicValidator:
     def validate(self, class_name, data):
         """Validate data using skip logic rules for a specific class."""
         errors = []
-        severity_levels = {"Low": 0, "Moderate": 0, "High": 0, "Critical": 0}  # Track severity levels
+        severity_levels = {"Low": 0, "Moderate": 0, "High": 0, "Non-Critical" : 0, "Critical": 0}  # Track severity levels
         
         rules = self.get_rules_for_class(class_name)
         
         for _, rule in rules.iterrows():
             # Extract rule details
             condition_variable = rule['condition_variable']
-            condition_value = rule['condition_value']
+            condition_values = str(rule['condition_value']).split(',')  # Ensure it's a string before splitting
             check_type = rule['check_type']
             check_variables = rule['check_variables'].split(',')
-            check_values = rule['check_values'].split(',') if pd.notna(rule['check_values']) else []
+            check_values = str(rule['check_values']).split(',') if pd.notna(rule['check_values']) else []
             severity = rule['severity']
             
             # Perform validation based on check_type
@@ -67,9 +67,17 @@ class SkipLogicValidator:
                 if self.perform_critical_check(data, check_variables):
                     errors.append(f"{', '.join(check_variables)}: {severity}")
                     severity_levels[severity] += 1
-            elif check_type in ["missing", "value"]:
-                # Conditional validation
-                if condition_variable in data and data[condition_variable] == condition_value:
+
+            elif check_type == "missing":
+                # Conditional validation allowing multiple condition values
+                if condition_variable in data and str(data[condition_variable]) in condition_values:
+                    if not self.perform_check(data, check_type, check_variables, check_values):
+                        errors.append(f"{', '.join(check_variables)}: {severity}")
+                        severity_levels[severity] += 1
+                        
+            elif check_type == "value":
+                # Perform a value check even if no condition_variable is given
+                if not condition_variable or (condition_variable in data and str(data[condition_variable]) in condition_values):
                     if not self.perform_check(data, check_type, check_variables, check_values):
                         errors.append(f"{', '.join(check_variables)}: {severity}")
                         severity_levels[severity] += 1
@@ -107,7 +115,7 @@ class PydanticModel(BaseModel):
     """
     Base class for all Pydantic models, create in case future modifications are helpful
     """
-    
+
     valid_record: bool = Field(
         default=True, description="Indicates if the record is valid")
     """
@@ -316,7 +324,7 @@ class Trip(PydanticModel):
     """
     Longitude coordinate of the destination address from the airport.
     """
-    
+
     destination_municipal_zone: NoneOrNanString[str] = Field(
         ..., description="Municipal zone of the destination address for the trip to the airport"
     )
@@ -689,8 +697,8 @@ class Trip(PydanticModel):
 
     
     @model_validator(mode="after")
-    def validate_visitor(cls, values):
-        # Validate using SkipLogicValidator
+    def validate_record(cls, values):
+        
         errors, severity_levels, num_errors = skip_logic_validator.validate("Trip", values.dict())
         # Update validation fields
         values.valid_record = len(errors) == 0
@@ -718,6 +726,13 @@ class Respondent(PydanticModel):
     Data model for a survey respondent. It includes attributes common to air passengers and employees.
     """
 
+    is_completed: bool = Field(
+        ..., description = "True if the record is complete"
+    )
+    """
+    True if the record is complete
+    """
+
     is_self_administered: bool = Field(
         default = False, description = "True if the survey was self-administered by the respondent")
     """
@@ -728,13 +743,6 @@ class Respondent(PydanticModel):
         ..., description="Unique identifier for the respondent")
     """
     Unique identifier for the respondent.
-    """
-
-    is_completed: bool = Field(
-        ..., description = "True if the record is complete"
-    )
-    """
-    True if the record is complete
     """
 
     is_pilot: bool = Field(
@@ -1305,10 +1313,9 @@ class Employee(Respondent):
     #     return values
     
     @model_validator(mode="after")
-    def validate_visitor(cls, values):
+    def validate_record(cls, values):
         # Validate using SkipLogicValidator
         errors, severity_levels, num_errors = skip_logic_validator.validate("Employee", values.dict())
-        
         # Update validation fields
         values.valid_record = len(errors) == 0
         values.validation_error = errors
@@ -2121,7 +2128,7 @@ class DepartingPassengerResident(DepartingAirPassenger, Resident):
     """
 
     @model_validator(mode="after")
-    def validate_visitor(cls, values):
+    def validate_record(cls, values):
         # Validate using SkipLogicValidator
         errors, severity_levels, num_errors = skip_logic_validator.validate("DepartingpassengerResident", values.dict())
         # Update validation fields
@@ -2341,7 +2348,7 @@ class DepartingPassengerVisitor(DepartingAirPassenger, Visitor):
     """
     
     @model_validator(mode="after")
-    def validate_visitor(cls, values):
+    def validate_record(cls, values):
         # Validate using SkipLogicValidator
         errors, severity_levels, num_errors = skip_logic_validator.validate("DepartingPassengerVisitor", values.dict())
         # Update validation fields
@@ -2379,7 +2386,7 @@ class ArrivingPassengerResident(ArrivingAirPassenger, Resident):
     """
 
     @model_validator(mode="after")
-    def validate_visitor(cls, values):
+    def validate_record(cls, values):
         # Validate using SkipLogicValidator
         errors, severity_levels, num_errors = skip_logic_validator.validate("ArrivingPassengerResident", values.dict())
         # Update validation fields
@@ -2441,7 +2448,7 @@ class ArrivingPassengerVisitor(ArrivingAirPassenger, Visitor):
     #     return values
 
     @model_validator(mode="after")
-    def validate_visitor(cls, values):
+    def validate_record(cls, values):
         # Validate using SkipLogicValidator
         errors, severity_levels, num_errors = skip_logic_validator.validate("ArrivingPassengerVisitor", values.dict())
         
