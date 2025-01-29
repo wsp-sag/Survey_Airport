@@ -178,6 +178,7 @@ def add_synthetic_records(df):
             synthetic_record['respondentid'] = 'syn-' + str(row['respondentid'])
             synthetic_record['inbound_or_outbound'] = 2 if row['inbound_or_outbound'] == 1 else 1
             synthetic_record['passenger_type'] = e.PassengerType.ARRIVING
+            synthetic_record['car_available'] = pd.NA
             #to-do add resident_visitor_general:
             if row['resident_visitor_general'] == e.ResidentVisitorGeneral.GOING_HOME:
                 synthetic_record['resident_visitor_general'] = e.ResidentVisitorGeneral.VISITING
