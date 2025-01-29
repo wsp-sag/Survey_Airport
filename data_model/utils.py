@@ -192,9 +192,9 @@ def add_synthetic_records(df):
             synthetic_record['previous_flight_origin'], synthetic_record['next_flight_destination'] = row['next_flight_destination'], row['previous_flight_origin']
 
             # Flipping the main and reverse modes:
-            if pd.notna(row['reverse_mode']) or row['reverse_mode']:
+            if pd.notna(row['reverse_mode']):
                 synthetic_record['main_mode'], synthetic_record['reverse_mode'] = row['reverse_mode'], row['main_mode']
-            else:
+            elif pd.notna(row['reverse_mode_predicted']):
                 synthetic_record['main_mode'], synthetic_record['reverse_mode_predicted'] = row['reverse_mode_predicted'], row['main_mode']
 
             # Access and Egress Modes:
