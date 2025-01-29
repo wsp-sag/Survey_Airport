@@ -29,8 +29,8 @@ processed_dir <- "../data/processed/"
 interim_dir <- "../data/interim/"
 output_dir <- "../data/interim/"
 
-# config_file <- paste0(interim_dir, "expansion_config_departing_only.yaml")
-config_file <- paste0(interim_dir, "expansion_config_departing_and_arriving.yaml")
+config_file <- paste0(interim_dir, "expansion_config_departing_only.yaml")
+# config_file <- paste0(interim_dir, "expansion_config_departing_and_arriving.yaml")
 
 script_config <- yaml.load_file(config_file)
 
@@ -61,11 +61,12 @@ SURVEY_ID <- "unique_id"
 ```{r data-reads}
 controls_df <- read_csv(controls_file, col_types = cols(.default = col_number(), airport_terminal = col_character()))
 config_df <- read_csv(config_file, col_types = cols(.default = col_character(), priority = col_number(), use = col_integer()))
-survey_df <- read_csv(survey_file, col_types = cols(.default = col_character(), 
+survey_df <- read_csv(survey_file, col_types = cols(.default = col_character(),  
                                                     main_mode = col_number(),
                                                     marketsegment = col_number(),
                                                     inbound_or_outbound = col_number(),
                                                     party_size_flight = col_number(),
+                                                    airport_terminal = col_number(),
                                                     weight = col_number()))
 ```
 
@@ -170,7 +171,7 @@ run_stats <- function(s_df, c_df, control_field, iter) {
 # Preparation
 ```{r preparation}
 working_controls_df <- controls_df %>%
-  replace(is.na(.), 0)
+  mutate(across(everything(), ~replace_na(., 0)))
 
 working_config_df <- config_df %>%
   filter(use == 1L)
@@ -179,7 +180,8 @@ working_survey_df <- survey_df %>%
   filter(is_completed == "True") %>%
   mutate(count = 1) %>%
   mutate_all(~replace(., is.na(.), 0)) %>%
-  mutate(party_size_flight = party_size_flight + 1)
+  mutate(party_size_flight = party_size_flight + 1) %>% 
+  mutate(airport_terminal = paste0(as.integer(airport_terminal)))
 
 if (departing_only) {
   working_survey_df <- working_survey_df %>%
@@ -201,7 +203,7 @@ working_survey_df <- left_join(working_survey_df, weights_df, by = c("marketsegm
 
 working_controls_df <- add_rfac(working_config_df, working_controls_df)
 
-statout_df <- tibble(iter = 0)
+statout_df <- tibble()
 ```
 
 # Expansion
