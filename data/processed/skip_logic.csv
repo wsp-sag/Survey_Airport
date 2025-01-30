@@ -16,7 +16,8 @@ Trip,inbound_or_outbound,2,missing,destination_longitude,,Critical
 Trip,inbound_or_outbound,1,missing,origin_latitude,,Critical
 Trip,inbound_or_outbound,1,missing,origin_longitude,,Critical
 DepartingPassengerVisitor,,,critical,reverse_mode,,Non-Critical
-ArrivingPassengerResident,,,critical,reverse_mode_predicted,,Non-Critical
+ArrivingPassengerResident,,,critical,reverse_mode,,Non-Critical
+ArrivingPassengerVisitor,,,critical,reverse_mode_predicted,,Non-Critical
 DepartingPassengerResident,,,critical,reverse_mode_predicted,,Non-Critical
 Employee,,,critical,reverse_commute_mode,,Non-Critical
 Employee,,,critical,employer,,Non-Critical
@@ -29,8 +30,8 @@ ArrivingPassengerResident,,,critical,general_use_transit_resident,,Non-Critical
 DepartingPassengerResident,,,critical,general_use_transit_resident,,Non-Critical
 ArrivingPassengerVisitor,,,critical,general_use_transit_visitor_home,,Non-Critical
 DepartingPassengerVisitor,,,critical,general_use_transit_visitor_home,,Non-Critical
-ArrivingPassengerVisitor,resident_visitor,8,missing,country_of_residence ,,Non-Critical
-DepartingPassengerVisitor,resident_visitor,8,missing,country_of_residence ,,Non-Critical
+ArrivingPassengerVisitor,resident_visitor,8,missing,country_of_residence,,Non-Critical
+DepartingPassengerVisitor,resident_visitor,8,missing,country_of_residence,,Non-Critical
 ArrivingPassengerVisitor,resident_visitor,6,missing,state_of_residence,,Non-Critical
 DepartingPassengerVisitor,resident_visitor,6,missing,state_of_residence,,Non-Critical
 ArrivingPassengerResident,,,critical,general_use_transit_resident,,Non-Critical
