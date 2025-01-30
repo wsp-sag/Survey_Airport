@@ -215,7 +215,7 @@ running_survey_df <- working_survey_df
 for (iter in 1:max_iteration){
   print(iter)
   
-  for (j in seq_len(nrow(running_controls_df))){
+  for (j in seq_len(nrow(working_config_df))){
     
     j_config_df <- slice(working_config_df, j) 
 
