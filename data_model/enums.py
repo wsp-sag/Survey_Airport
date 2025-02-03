@@ -86,6 +86,19 @@ class ResidentVisitorFollowup(IntEnum):
 #     NO = 0
 #     OTHER = 98
 
+class PMSA(IntEnum):
+    """
+    Integer Mapping for Pseudo Metropolitan Statistical Areas
+    """
+    DOWNTOWN = 1
+    CENTRAL = 2
+    NORTH_CITY = 3
+    SOUTH_SUBURBAN = 4
+    EAST_SUBURBAN = 5
+    NORTH_COUNTY_WEST = 6
+    NORTH_COUNTY_EAST = 7
+    EAST_COUNTY = 8
+    EXTERNAL = 99
 
 class ResidentVisitor(IntEnum):
     """
