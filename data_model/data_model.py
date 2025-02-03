@@ -9,7 +9,7 @@ from typing import Annotated, Any, ClassVar, Literal, Optional, TypeVar, Union, 
 from pydantic import (BaseModel, BeforeValidator, Field, computed_field,
                       field_validator, model_validator)
 from pydantic_extra_types.coordinate import Coordinate, Latitude, Longitude
-
+import pandas as pd
 import enums as e
 import re
 
@@ -37,10 +37,111 @@ NoneOrNan = Annotated[Optional[T], BeforeValidator(coerce_nan_to_none)]
 NoneOrNanString = Annotated[Optional[T], BeforeValidator(coerce_nan_string_to_none)]
 
 
+class SkipLogicValidator:
+    def __init__(self, skip_logic_csv):
+        self.rules = pd.read_csv(skip_logic_csv)
+    
+    def get_rules_for_class(self, class_name):
+        """Filter skip logic rules for a specific class."""
+        return self.rules[self.rules['class'] == class_name]
+    
+    def validate(self, class_name, data):
+        """Validate data using skip logic rules for a specific class."""
+        errors = []
+        severity_levels = {"Non-Critical" : 0, "Critical": 0}  # Track severity levels
+        
+        rules = self.get_rules_for_class(class_name)
+        
+        for _, rule in rules.iterrows():
+            # Extract rule details
+            condition_variable = rule['condition_variable']
+            condition_values = str(rule['condition_value']).split(',')  # Ensure it's a string before splitting
+            check_type = rule['check_type']
+            check_variables = rule['check_variables'].split(',')
+            check_values = str(rule['check_values']).split(',') if pd.notna(rule['check_values']) else []
+            severity = rule['severity']
+            
+            # Perform validation based on check_type
+            if check_type == "critical":
+                # Check fields directly for missing values
+                if self.perform_critical_check(data, check_variables):
+                    errors.append(f"{', '.join(check_variables)}: {severity}")
+                    severity_levels[severity] += 1
+
+            elif check_type == "missing":
+                # Conditional validation allowing multiple condition values
+                if condition_variable in data and str(data[condition_variable]) in condition_values:
+                    if not self.perform_check(data, check_type, check_variables, check_values):
+                        errors.append(f"{', '.join(check_variables)}: {severity}")
+                        severity_levels[severity] += 1
+                        
+            elif check_type == "value":
+                # Perform a value check even if no condition_variable is given
+                if not condition_variable or (condition_variable in data and str(data[condition_variable]) in condition_values):
+                    if not self.perform_check(data, check_type, check_variables, check_values):
+                        errors.append(f"{', '.join(check_variables)}: {severity}")
+                        severity_levels[severity] += 1
+        
+        return errors, severity_levels, len(errors)
+    
+    def perform_critical_check(self, data, check_variables):
+        """
+        Check if any of the critical fields are missing.
+        Returns True if any field is missing, False otherwise.
+        """
+        for var in check_variables:
+            if var not in data or data[var] is None:
+                # Log which variable failed the critical check
+                print(f"Critical check failed for variable: {var}")
+                return True  # A missing field causes the critical check to fail
+        return False  # All fields are present
+    
+    def perform_check(self, data, check_type, check_variables, check_values):
+        """Perform the validation check based on the check_type."""
+        if check_type == "missing":
+            # Return False if any of the variables are missing
+            return all(var in data and data[var] is not None for var in check_variables)
+        elif check_type == "value":
+            # Return False if any of the variables do not match the expected values
+            return all(var in data and data[var] in check_values for var in check_variables)
+        return True
+
+
+
+skip_logic_validator = SkipLogicValidator("../data/processed/skip_logic.csv")
+
+
 class PydanticModel(BaseModel):
     """
     Base class for all Pydantic models, create in case future modifications are helpful
     """
+
+    valid_record: bool = Field(
+        default=True, description="Indicates if the record is valid")
+    """
+    Indicates if the record is valid
+    """
+
+    validation_error: str = Field(
+        default="", description="Holds validation error messages")
+    """
+    Holds the validation error message
+    """
+
+    validation_severity: str = Field(
+        default = "", description = "Holds the severity of the validation error"
+    )
+    """
+    Holds the severity of the validation error
+    """
+
+    validation_num_errors: int = Field(
+        default = 0, description = "Number of missing (null) fields for the record"
+    )
+    """
+    Number of missing (null) fields for the record
+    """
+
     @model_validator(mode="before")
     def convert_datetime(cls, values):
         # List of fields to validate
@@ -55,6 +156,9 @@ class PydanticModel(BaseModel):
                 values['validation_error'] = f"{field} is datetime"
 
         return values
+
+
+
 
 class Lat(BaseModel):
     lat: Latitude
@@ -136,6 +240,20 @@ class Trip(PydanticModel):
     Longitude coordinate of the origin address for the trip to the airport.
     """
 
+    origin_municipal_zone: NoneOrNanString[str] = Field(
+        ..., description="Municipal zone of the origin address for the trip to the airport"
+    )
+    """
+    Municipal zone of the origin address for the trip to the airport
+    """
+
+    origin_pmsa: NoneOrNanString[e.PMSA] = Field(
+        ..., description="Pseudo MSA of the origin address for the trip to the airport"
+    )
+    """
+    Pseudo MSA of the origin address for the trip to the airport
+    """
+    
     destination_activity_type: NoneOrNanString[e.ActivityType] = Field(
         ...,
         description="Activity type at the destination of the trip from the airport",
@@ -205,6 +323,20 @@ class Trip(PydanticModel):
     )
     """
     Longitude coordinate of the destination address from the airport.
+    """
+
+    destination_municipal_zone: NoneOrNanString[str] = Field(
+        ..., description="Municipal zone of the destination address for the trip to the airport"
+    )
+    """
+    Municipal zone of the destination address for the trip to the airport
+    """
+
+    destination_pmsa: NoneOrNanString[e.PMSA] = Field(
+        ..., description="Pseudo MSA of the destination address for the trip to the airport"
+    )
+    """
+    Pseudo MSA of the origin destination for the trip to the airport
     """
 
     main_transit_mode: NoneOrNanString[e.TravelMode] = Field(
@@ -563,30 +695,31 @@ class Trip(PydanticModel):
     Longitude of the stop where respondent boarded the main transit mode
     """
 
-    car_available: NoneOrNanString[e.CarAvailability] = Field(
-        ..., description = "Status of car availability for the trip to the airport"
-    )
-    """
-    Status of car availability for the trip to the airport
-    """
-
-    car_available_other: NoneOrNanString[str] = Field(
-        ..., description = "Status of car availability (other than listed) for the trip to the airport"
-    )
-    """
-    Status of car availability (other than listed) for the trip to the airport
-    """
-
+    
+    @model_validator(mode="after")
+    def validate_record(cls, values):
+        
+        errors, severity_levels, num_errors = skip_logic_validator.validate("Trip", values.dict())
+        # Update validation fields
+        values.valid_record = len(errors) == 0
+        values.validation_error = errors
+        values.validation_severity = cls.determine_severity(severity_levels)
+        values.validation_num_errors = num_errors
+        
+        return values
+    
+    @staticmethod
+    def determine_severity(severity_levels):
+        if severity_levels["Critical"] > 0:
+            return "Critical"
+        elif severity_levels["Non-Critical"] > 0:
+            return "Non-Critical"
+        return "None"
+    pass 
 
 class Respondent(PydanticModel):
     """
     Data model for a survey respondent. It includes attributes common to air passengers and employees.
-    """
-
-    respondentid: Union[int,str] = Field(
-        ..., description="Unique identifier for the respondent")
-    """
-    Unique identifier for the respondent.
     """
 
     is_completed: bool = Field(
@@ -594,6 +727,18 @@ class Respondent(PydanticModel):
     )
     """
     True if the record is complete
+    """
+
+    is_self_administered: bool = Field(
+        default = False, description = "True if the survey was self-administered by the respondent")
+    """
+    True if the survey was self-administered by the respondent.
+    """
+    
+    respondentid: Union[int,str] = Field(
+        ..., description="Unique identifier for the respondent")
+    """
+    Unique identifier for the respondent.
     """
 
     is_pilot: bool = Field(
@@ -653,61 +798,6 @@ class Respondent(PydanticModel):
     Whether the respondent is of a qualified age to participate in the survey.
     """
 
-    # is_qualified_not_connecting: NoneOrNanString[bool] = Field(
-    #     ...,
-    #     description="Whether the respondent is traveling to the airport and therefore qualified to participate in the survey",
-    # )
-    # """
-    # Whether the respondent is traveling to the airport and therefore 
-    # """
-
-    resident_visitor_general: NoneOrNan[e.ResidentVisitorGeneral] = Field(
-        ...,
-        description="Whether a resident or a visitor of the San deigo airport service area",
-    )
-    """
-    Whether a resident or a visitor of the San deigo airport service area.
-    """
-
-    resident_visitor_followup: NoneOrNanString[e.ResidentVisitorFollowup] = Field(
-        ...,
-        description="If neither a resident or a visitor, whether the respondent is visiting San Diego",
-    )
-    """
-    If neither a resident or a visitor, whether the respondent is visiting San Diego.
-    """
-
-    resident_visitor_arriving: NoneOrNanString[bool] = Field(
-        ..., description = "True if respondent lives outside San Diego Region and is going home by ground transportation"
-    )
-
-    """
-    True if respondent lives outside San Diego Region and is going home by ground transportation
-    """
-    resident_visitor: NoneOrNan[e.ResidentVisitor] = Field(
-        ...,
-        description="Where the respondent resides in the airport service area most of the year",
-    )
-    """
-    Where the respondent resides in the airport service area most of the year.
-    """
-
-    country_of_residence: NoneOrNan[e.Country] = Field(
-        ...,
-        description="Country of residence for international vistors",
-    )
-    """
-    Country of residence for international vistors.
-    """
-
-    state_of_residence: NoneOrNan[e.State] = Field(
-        ...,
-        description="State of residence for US and Mexico residents",
-    )
-    """
-    State of residence for US and Mexico residents.
-    """
-
  #Add new here
     # home_location_address: NoneOrNanString[str] =  Field(
     #     ..., description = "Street Address of the home location of the respondent"
@@ -715,41 +805,6 @@ class Respondent(PydanticModel):
     # """
     # Street Address of the home location of the respondent
     # """
-
-    home_location_city: NoneOrNanString[str] =  Field(
-        ..., description = "City of the home location of the respondent"
-    )
-    """
-    City of the home location of the respondent
-    """
-
-    home_location_state: NoneOrNanString[str] =  Field(
-        ..., description = "State of the home location of the respondent"
-    )
-    """
-    State of the home location of the respondent
-    """
-
-    home_location_zip: NoneOrNanString[Union[str,int]] =  Field(
-        ..., description = "ZIP of the home location of the respondent"
-    )
-    """
-    ZIP of the home location of the respondent
-    """
-
-    home_location_latitude: NoneOrNanString[Latitude] =  Field(
-        ..., description = "Latitude of the home location of the respondent"
-    )
-    """
-    Latitude of the home location of the respondent
-    """
-
-    home_location_longitude: NoneOrNanString[Longitude]=   Field(
-        ..., description = "Longitude of the home location of the respondent"
-    )
-    """
-    Longitude of the home location of the respondent
-    """
 
     age: NoneOrNan[e.Age] = Field(..., description="Age category of the respondent")
     """
@@ -913,25 +968,6 @@ class Respondent(PydanticModel):
     Details of the trip taken by the respondent.
     """
 
-    valid_record: bool = Field(
-        default=True, description="Indicates if the record is valid")
-    """
-    Indicates if the record is valid
-    """
-
-    validation_error: str = Field(
-        default="", description="Holds validation error messages")
-    """
-    Holds the validation error message
-    """
-
-    validation_severity: str = Field(
-        default = "", description = "Holds the severity of the validation error"
-    )
-    """
-    Holds the severity of the validation error
-    """
-
     weight: float = Field(
         ..., description = 'Expansion Factor of the observation'
     )
@@ -962,7 +998,6 @@ class Respondent(PydanticModel):
             values.validation_severity = "Low"
         return values
 
-        v
 
 class Employee(Respondent):
     """
@@ -1003,7 +1038,6 @@ class Employee(Respondent):
     """
     Name (not listed) of respondent's employer.
     """
-
 
     occupation: NoneOrNanString[e.Occupations] = Field(
         ..., description = "Occupation of the employee"
@@ -1209,6 +1243,13 @@ class Employee(Respondent):
     True if the employee used their personal e-scooter to commute to the airport in the past 30 days.
     """
 
+    alt_commute_mode_other: NoneOrNanString[str] = Field(
+        ..., description = "Other mode used by the employee to commute to the airport in the past 30 days."
+    )
+    """
+    Other mode used by the employee to commute to the airport in the past 30 days
+    """
+
     commute_mode_decision: NoneOrNanString[e.ModeDecision] = Field(
         ..., description = "Factor affecting the Mode choice of the employee"
     )
@@ -1216,13 +1257,6 @@ class Employee(Respondent):
     Factor affecting the Mode choice of the employee
     """
 
-    alt_commute_mode_other: NoneOrNanString[str] = Field(
-        ..., description = "Other mode used by the employee to commute to the airport in the past 30 days."
-    )
-    """
-    Other mode used by the employee to commute to the airport in the past 30 days
-    """
-    
     commute_mode_decision_other: NoneOrNanString[str] = Field(
         ..., description = "(Other) Factor affecting the Mode choice of the employee"
     )
@@ -1258,10 +1292,141 @@ class Employee(Respondent):
     Whether the respondent has access to employee parking.
     """
 
+    # @model_validator(mode="after")
+    # def validate_missing_fields(cls, values):
+    #     null_fields = [field for field, value in values if value is None and 'other' not in field]
+    #     critical_fields = []
+    #     if null_fields:
+    #         values.valid_record = False
+    #         values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
+    #         values.validation_num_errors = len(null_fields)
+    #         if len(null_fields)>3:
+    #             values.validation_severity = "High"
+    #         else:
+    #             values.validation_severity = "Low"
+    #         if any(field in critical_fields for field in null_fields):
+    #             values.validation_severity = "Critical"
+    #     return values
+    
+    @model_validator(mode="after")
+    def validate_record(cls, values):
+        # Validate using SkipLogicValidator
+        errors, severity_levels, num_errors = skip_logic_validator.validate("Employee", values.dict())
+        # Update validation fields
+        values.valid_record = len(errors) == 0
+        values.validation_error = errors
+        values.validation_severity = cls.determine_severity(severity_levels)
+        values.validation_num_errors = num_errors
+        
+        return values
+    
+    @staticmethod
+    def determine_severity(severity_levels):
+        if severity_levels["Critical"] > 0:
+            return "Critical"
+        elif severity_levels["Non-Critical"] > 0:
+            return "Non-Critical"
+        return "None"
 
 class AirPassenger(Respondent):
     """
     Data model for an air passenger respondent. It includes attributes specific to air passengers.
+    """
+
+    resident_visitor_general: NoneOrNan[e.ResidentVisitorGeneral] = Field(
+        ...,
+        description="Whether a resident or a visitor of the San deigo airport service area",
+    )
+    """
+    Whether a resident or a visitor of the San deigo airport service area.
+    """
+
+    resident_visitor_followup: NoneOrNanString[e.ResidentVisitorFollowup] = Field(
+        ...,
+        description="If neither a resident or a visitor, whether the respondent is visiting San Diego",
+    )
+    """
+    If neither a resident or a visitor, whether the respondent is visiting San Diego.
+    """
+
+    resident_visitor_arriving: NoneOrNanString[bool] = Field(
+        ..., description = "True if respondent lives outside San Diego Region and is going home by ground transportation"
+    )
+
+    """
+    True if respondent lives outside San Diego Region and is going home by ground transportation
+    """
+    
+    resident_visitor: NoneOrNan[e.ResidentVisitor] = Field(
+        ...,
+        description="Where the respondent resides in the airport service area most of the year",
+    )
+    """
+    Where the respondent resides in the airport service area most of the year.
+    """
+
+    passenger_segment: NoneOrNan[e.PassengerSegment] = Field(
+        ..., description="Segment of the air passenger: (Resident/Visitor and Arriving/Departing)"
+    )
+    """
+    Segment of the air passenger: (Resident/Visitor and Arriving/Departing)
+    """
+
+    qualified_visitor: NoneOrNan[bool] = Field( 
+        ..., description = "True if the respondent is a qualified visitor")
+    """
+    True if the respondent is a qualified visitor.
+    """
+
+    country_of_residence: NoneOrNan[e.Country] = Field(
+        ...,
+        description="Country of residence for international vistors",
+    )
+    """
+    Country of residence for international vistors.
+    """
+
+    state_of_residence: NoneOrNan[e.State] = Field(
+        ...,
+        description="State of residence for US and Mexico residents",
+    )
+    """
+    State of residence for US and Mexico residents.
+    """
+    
+    home_location_city: NoneOrNanString[str] =  Field(
+        ..., description = "City of the home location of the respondent"
+    )
+    """
+    City of the home location of the respondent
+    """
+
+    home_location_state: NoneOrNanString[str] =  Field(
+        ..., description = "State of the home location of the respondent"
+    )
+    """
+    State of the home location of the respondent
+    """
+
+    home_location_zip: NoneOrNanString[Union[str,int]] =  Field(
+        ..., description = "ZIP of the home location of the respondent"
+    )
+    """
+    ZIP of the home location of the respondent
+    """
+
+    home_location_latitude: NoneOrNanString[Latitude] =  Field(
+        ..., description = "Latitude of the home location of the respondent"
+    )
+    """
+    Latitude of the home location of the respondent
+    """
+
+    home_location_longitude: NoneOrNanString[Longitude]=   Field(
+        ..., description = "Longitude of the home location of the respondent"
+    )
+    """
+    Longitude of the home location of the respondent
     """
 
     passenger_type: NoneOrNanString[e.PassengerType] = Field(
@@ -1279,58 +1444,20 @@ class AirPassenger(Respondent):
     """
 
 
-    @model_validator(mode="before")
-    def convert_datetime(cls, values):
-        # List of fields to validate
-        fields_to_check = ['previous_or_next_airport']
+    # @model_validator(mode="before")
+    # def validate_airport(cls, values):
+    #     # List of fields to validate
+    #     fields_to_check = ['previous_or_next_airport']
         
-        for field in fields_to_check:
-            value = values.get(field)
-            if not isinstance(value, str):
-                values[field] = str(value)
-                values['valid_record'] = False
-                values['validation_severity'] = "Low"
-                values['validation_error'] = f"{field} is not string"
+    #     for field in fields_to_check:
+    #         value = values.get(field)
+    #         if not isinstance(value, str):
+    #             values[field] = str(value)
+    #             values['valid_record'] = False
+    #             values['validation_severity'] = "Low"
+    #             values['validation_error'] = f"{field} is not string"
 
-        return values
-    @computed_field(
-        return_type = str,
-        description = "Previous flight origin for an arriving passenger",
-    )
-    @property
-    def previous_flight_origin(cls):
-        """
-        Previous flight origin for an arriving passenger
-        """
-        if cls.passenger_type == e.PassengerType.ARRIVING:
-            return cls.previous_or_next_airport
-        
-        
-    @computed_field(
-        return_type = str,
-        description = "Next Flight Destination for a departing passenger",
-    )
-    @property
-    def next_flight_destination(cls):
-        """
-        Next Flight Destination for a departing passenger
-        """
-        if cls.passenger_type == e.PassengerType.DEPARTING:
-            return cls.previous_or_next_airport
-
-    # next_flight_destination: NoneOrNanString[str] = Field(
-    #     ..., description = "Destination of the flight for departing passengers"
-    # )
-    # """
-    # Destination of the flight for departing passengers.
-    # """
-
-    # previous_flight_origin: NoneOrNanString[str] = Field(
-    #     ..., description = "Origin of the flight for arriving passengers"
-    # )
-    # """
-    # Origin of the flight for arriving passengers.
-    # """
+    #     return values
 
     airline: NoneOrNanString[e.Airline] = Field(
         ..., description = "Airline of the respondent's flight"
@@ -1382,76 +1509,6 @@ class AirPassenger(Respondent):
         else:
             return e.Terminal.UNKNOWN
 
-
-    @computed_field(
-        return_type = bool,
-        description = "True if the previous flight origin was original and not a layover",
-    )
-    @property
-    def is_original_origin(cls):
-        """
-        True if the previous flight origin was original and not a layover
-        """
-        if cls.passenger_type == e.PassengerType.ARRIVING:
-            return cls.not_using_connecting
-        
-        
-    @computed_field(
-        return_type = bool,
-        description = "True if the next flight destination is final and not a layover",
-    )
-    @property
-    def is_final_destination(cls):
-        """
-        True if the next flight destination is final and not a layover
-        """
-        if cls.passenger_type == e.PassengerType.DEPARTING:
-            return cls.not_using_connecting
-        
-
-
-    # is_final_destination: NoneOrNanString[bool] = Field(
-    #     ..., description = "Whether respondent's next destination is their final destination"
-    # )
-    # """
-    # Whether respondent's next destination is their final destination.
-    # """
-
-    # is_original_origin: NoneOrNanString[bool] = Field(
-    #     ..., description = "Whether the respondent used a connecting flight"
-    # )
-    # """
-    # Whether the respondent used a connecting flight.
-    # """
-
-    final_flight_destination: NoneOrNanString[str] = Field(
-        ..., description = "Final destination of the flight for departing passengers"
-    )
-    """
-    Final destination of the flight for departing passengers.
-    """
-
-    flight_departure_time: NoneOrNan[e.DepartTime] = Field(
-        ..., description = "Time of flight departure"
-    )
-    """
-    Time of flight departure.
-    """
-
-    flight_arrival_time: NoneOrNan[e.DepartTime] = Field(
-        ..., description = "Time of flight arrival"
-    )
-    """
-    Time of flight arrival.
-    """
-
-    original_flight_origin: NoneOrNanString[str] = Field(
-        ..., description = "Original origin for arriving passengers"
-    )
-    """
-    Original origin for arriving passengers.
-    """
-
     flight_purpose: NoneOrNanString[e.FlightPurpose] = Field(
         ..., description = "Purpose of the respondent's flight"
     )
@@ -1464,27 +1521,6 @@ class AirPassenger(Respondent):
     )
     """
     Other (not listed) purpose of the respondent's flight
-    """
-
-    convention_center: NoneOrNanString[e.YesNoType] = Field(
-        ..., description = "Whether the visitor went/going to convention center"
-    )
-    """
-    Whether the visitor went/going to convention center.
-    """
-
-    convention_center_activity: NoneOrNanString[e.ConventionCenterActivity] = Field(
-        ..., description = "Type of activity that the respondent conducted at the convention center"
-    )
-    """
-    Type of activity that the respondent conducted at the convention center.
-    """
-
-    convention_center_activity_other: NoneOrNanString[str] = Field(
-        ..., description = "Type of activity (not listed) that the respondent conducted at the convention center"
-    )
-    """
-    Type of activity (not listed) that the respondent conducted at the convention center.
     """
 
     checked_bags: NoneOrNan[e.CheckedBags] = Field(
@@ -1500,21 +1536,7 @@ class AirPassenger(Respondent):
     """
     Number of carry-on bags.
     """
-
-    nights_away: NoneOrNan[e.TravelDuration] = Field(
-        ..., description = "Number of nights the departing air passengers will be away"
-    )
-    """
-    Number of nights the departing air passengers will be away.
-    """
-
-    nights_visited: NoneOrNan[e.TravelDuration] = Field(
-        ..., description = "Number of nights the arriving air passengers will be in the San Diego Region"
-    )
-    """
-    Number of nights the arriving air passengers will be in the San Diego Region.
-    """
-
+    
     party_size_flight: NoneOrNanString[e.PartySize] = Field(
         ..., description = "Number of people flying with the respondent (count excludes the respondent)"
     )
@@ -1731,7 +1753,7 @@ class AirPassenger(Respondent):
     """
     True if the respondent used a personal electric scooter for their trip to SDIA in the last 12 months
     """
-
+    
     sdia_accessmode_split_other: NoneOrNanString[str] = Field(
         ..., description = "Other mode the respondent used for their trip to SDIA in the last 12 months"
     )
@@ -1739,33 +1761,11 @@ class AirPassenger(Respondent):
     Other mode the respondent used for their trip to SDIA in the last 12 months.
     """
 
-#
     sdia_accessmode_decision: NoneOrNan[e.ModeDecision] = Field(
         ..., description = "Factor which affects mode choice, for respondents who do not always used the same mode"
     )
     """
     Factor which affects mode choice, for respondents who do not always used the same mode.
-    """
-
-    reverse_mode: NoneOrNan[e.TravelMode] = Field(
-        ..., description = "Mode that was used in the reverse direction"
-    )
-    """
-    Mode that was used in the reverse direction.
-    """
-
-    reverse_mode_predicted: NoneOrNan[e.TravelMode] = Field(
-        ..., description = "Mode that will be used in the reverse direction"
-    )
-    """
-    Mode that will be used in the reverse direction.
-    """
-
-    reverse_mode_predicted_other: NoneOrNanString[str] = Field(
-        ..., description = "Mode (not listed) which will be used in the reverse direction"
-    )
-    """
-    Mode (not listed) which will be used in the reverse direction
     """
 
     sdia_transit_awareness: NoneOrNanString[e.YesNoType] = Field(
@@ -1906,6 +1906,133 @@ class AirPassenger(Respondent):
     )
     """
     Other reason why the respondent did not use transit.
+    """ 
+
+    non_sdia_flight_frequency: NoneOrNan[e.OtherFlightAndTransitUseFrequency] = Field(
+        ..., description = "Respondent's number of flights from airport other than SDIA in the past 12 months"
+    )
+    """
+    Respondent's number of flights from airport other than SDIA in the past 12 months.
+    """
+
+    other_airport_accessmode: NoneOrNanString[e.TravelMode] =  Field(
+        ..., description = "Travel mode used to access other airports"
+    )
+    """
+    Travel mode used to access other airports
+    """
+
+    airport_access_transit_use_elsewhere: NoneOrNanString[e.OtherFlightAndTransitUseFrequency] = Field(
+        ..., description = "Frequency of Transit use by respondent to access other airports"
+    )
+    """
+    Frequency of Transit use by respondent to access other airports.
+    """
+
+    airportaccesstransitname: NoneOrNanString[str] = Field(
+        ..., description = "Name of other airport accessed by transit"
+    )
+    """
+    Name of other airport accessed by transit.
+    """
+    
+    pass 
+
+
+class ArrivingAirPassenger(AirPassenger):
+    """
+    Data model for an arriving air passenger. It includes attributes specific to arriving air passengers.
+    """
+
+    @computed_field(
+        return_type = str,
+        description = "Previous flight origin for an arriving passenger",
+    )
+    @property
+    def previous_flight_origin(cls):
+        """
+        Previous flight origin for an arriving passenger
+        """
+        if cls.passenger_type == e.PassengerType.ARRIVING:
+            return cls.previous_or_next_airport
+    
+    @computed_field(
+        return_type = bool,
+        description = "True if the previous flight origin was original and not a layover",
+    )
+    @property
+    def is_original_origin(cls):
+        """
+        True if the previous flight origin was original and not a layover
+        """
+        return cls.not_using_connecting
+    
+    flight_arrival_time: NoneOrNan[e.DepartTime] = Field(
+        ..., description = "Time of flight arrival"
+    )
+    """
+    Time of flight arrival.
+    """
+
+    original_flight_origin: NoneOrNanString[str] = Field(
+        ..., description = "Original origin for arriving passengers"
+    )
+    """
+    Original origin for arriving passengers.
+    """
+
+class DepartingAirPassenger(AirPassenger):
+    """
+    Data model for a departing air passenger. It includes attributes specific to departing air passengers.
+    """
+            
+    @computed_field(
+        return_type = str,
+        description = "Next Flight Destination for a departing passenger",
+    )
+    @property
+    def next_flight_destination(cls):
+        """
+        Next Flight Destination for a departing passenger
+        """
+        return cls.previous_or_next_airport
+    
+    @computed_field(
+        return_type = bool,
+        description = "True if the next flight destination is final and not a layover",
+    )
+    @property
+    def is_final_destination(cls):
+        """
+        True if the next flight destination is final and not a layover
+        """
+        if cls.passenger_type == e.PassengerType.DEPARTING:
+            return cls.not_using_connecting
+        
+    final_flight_destination: NoneOrNanString[str] = Field(
+        ..., description = "Final destination of the flight for departing passengers"
+    )
+    """
+    Final destination of the flight for departing passengers.
+    """
+
+    flight_departure_time: NoneOrNan[e.DepartTime] = Field(
+        ..., description = "Time of flight departure"
+    )
+    """
+    Time of flight departure.
+    """
+
+class Resident(Respondent):
+    """
+    Data Model for a Air Passenger who is a resident of the San Deigo Region. It includes attributes specific to a Resident.
+    """
+    
+    nights_away: NoneOrNan[e.TravelDuration] = Field(
+        ..., description = "Number of nights the departing air passengers will be away"
+    )
+    """
+    Number of nights the departing air passengers will be away.
     """
 
     general_use_transit_resident: NoneOrNan[e.TransitUseFrequency] = Field(
@@ -1914,7 +2041,41 @@ class AirPassenger(Respondent):
     """
     General transit use frequency by residents of San Diego region in San Diego region.
     """
+    pass
 
+class Visitor(Respondent):
+    """
+    Data Model for a visitor of the San Deigo Region. It includes attributes specific to a Visitor.
+    """
+
+    convention_center: NoneOrNanString[e.YesNoType] = Field(
+        ..., description = "Whether the visitor went/going to convention center"
+    )
+    """
+    Whether the visitor went/going to convention center.
+    """
+
+    convention_center_activity: NoneOrNanString[e.ConventionCenterActivity] = Field(
+        ..., description = "Type of activity that the respondent conducted at the convention center"
+    )
+    """
+    Type of activity that the respondent conducted at the convention center.
+    """
+
+    convention_center_activity_other: NoneOrNanString[str] = Field(
+        ..., description = "Type of activity (not listed) that the respondent conducted at the convention center"
+    )
+    """
+    Type of activity (not listed) that the respondent conducted at the convention center.
+    """
+    
+    nights_visited: NoneOrNan[e.TravelDuration] = Field(
+        ..., description = "Number of nights the arriving air passengers will be in the San Diego Region"
+    )
+    """
+    Number of nights the arriving air passengers will be in the San Diego Region.
+    """
+    
     general_use_transit_visitor_home: NoneOrNan[e.TransitUseFrequency] = Field(
         ..., description = "General transit use frequency by visitors of San Diego region when home"
     )
@@ -1922,13 +2083,76 @@ class AirPassenger(Respondent):
     General transit use frequency by visitors of San Diego region when home.
     """
 
-    # general_modes_used_visitor: List[NoneOrNan[e.TravelMode]] = Field(
-    #     ..., description = "Modes respondent used during visit of San Diego region"
-    # )
-    # """
-    # Modes respondent used during visit of San Diego region.
-    # """
+    pass
 
+
+
+class DepartingPassengerResident(DepartingAirPassenger, Resident):
+    """
+    Data Model for a departing air passenger who is a resident of the San Deigo Region. 
+    """
+    car_available: NoneOrNanString[e.CarAvailability] = Field(
+        ..., description = "Status of car availability for the trip to the airport"
+    )
+    """
+    Status of car availability for the trip to the airport
+    """
+
+    car_available_other: NoneOrNanString[str] = Field(
+        ..., description = "Status of car availability (other than listed) for the trip to the airport"
+    )
+    """
+    Status of car availability (other than listed) for the trip to the airport
+    """
+    
+    reverse_mode_predicted: NoneOrNan[e.TravelMode] = Field(
+        ..., description = "Mode that will be used in the reverse direction"
+    )
+    """
+    Mode that will be used in the reverse direction.
+    """
+
+    reverse_mode_predicted_other: NoneOrNanString[str] = Field(
+        ..., description = "Mode (not listed) which will be used in the reverse direction"
+    )
+    """
+    Mode (not listed) which will be used in the reverse direction
+    """
+
+    @model_validator(mode="after")
+    def validate_record(cls, values):
+        # Validate using SkipLogicValidator
+        errors, severity_levels, num_errors = skip_logic_validator.validate("DepartingpassengerResident", values.dict())
+        # Update validation fields
+        values.valid_record = len(errors) == 0
+        values.validation_error = errors
+        values.validation_severity = cls.determine_severity(severity_levels)
+        values.validation_num_errors = num_errors
+        
+        return values
+    
+    @staticmethod
+    def determine_severity(severity_levels):
+        if severity_levels["Critical"] > 0:
+            return "Critical"
+        elif severity_levels["Non-Critical"] > 0:
+            return "Non-Critical"
+        return "None"
+    pass 
+
+
+class DepartingPassengerVisitor(DepartingAirPassenger, Visitor):
+
+    """
+    Data Model for a departing air passenger who is a resident of the San Deigo Region. 
+    """
+
+    reverse_mode: NoneOrNan[e.TravelMode] = Field(
+        ..., description = "Mode that was used in the reverse direction"
+    )
+    """
+    Mode that was used in the reverse direction.
+    """
     general_modes_used_visitor_taxi: NoneOrNanString[bool] = Field(
         ..., description = "True if the visitor used Taxi as a mode during their visit to the San Diego Region"
     )
@@ -2110,32 +2334,118 @@ class AirPassenger(Respondent):
     """
     Other mode used by the visitor during their visit to the San Diego Region.
     """
+    
+    @model_validator(mode="after")
+    def validate_record(cls, values):
+        # Validate using SkipLogicValidator
+        errors, severity_levels, num_errors = skip_logic_validator.validate("DepartingPassengerVisitor", values.dict())
+        # Update validation fields
+        values.valid_record = len(errors) == 0
+        values.validation_error = errors
+        values.validation_severity = cls.determine_severity(severity_levels)
+        values.validation_num_errors = num_errors
+        
+        return values
+    
+    @staticmethod
+    def determine_severity(severity_levels):
+        if severity_levels["Critical"] > 0:
+            return "Critical"
+        elif severity_levels["Non-Critical"] > 0:
+            return "Non-Critical"
+        return "None"
+    pass
 
-    non_sdia_flight_frequency: NoneOrNan[e.OtherFlightAndTransitUseFrequency] = Field(
-        ..., description = "Respondent's number of flights from airport other than SDIA in the past 12 months"
+
+class ArrivingPassengerResident(ArrivingAirPassenger, Resident):
+    """
+    Data Model for a departing air passenger who is a resident of the San Deigo Region. 
+    """
+    
+    reverse_mode: NoneOrNan[e.TravelMode] = Field(
+        ..., description = "Mode that was used in the reverse direction"
     )
     """
-    Respondent's number of flights from airport other than SDIA in the past 12 months.
+    Mode that was used in the reverse direction.
     """
 
-    other_airport_accessmode: NoneOrNanString[e.TravelMode] =  Field(
-        ..., description = "Travel mode used to access other airports"
+    @model_validator(mode="after")
+    def validate_record(cls, values):
+        # Validate using SkipLogicValidator
+        errors, severity_levels, num_errors = skip_logic_validator.validate("ArrivingPassengerResident", values.dict())
+        # Update validation fields
+        values.valid_record = len(errors) == 0
+        values.validation_error = errors
+        values.validation_severity = cls.determine_severity(severity_levels)
+        values.validation_num_errors = num_errors
+        
+        return values
+    
+    @staticmethod
+    def determine_severity(severity_levels):
+        if severity_levels["Critical"] > 0:
+            return "Critical"
+        elif severity_levels["Non-Critical"] > 0:
+            return "Non-Critical"
+        return "None"
+    
+    pass
+
+
+class ArrivingPassengerVisitor(ArrivingAirPassenger, Visitor):
+    """
+    Data Model for an arriving air passenger who is a visitor of the San Deigo Region. 
+    """
+
+    reverse_mode_predicted: NoneOrNan[e.TravelMode] = Field(
+        ..., description = "Mode that will be used in the reverse direction"
     )
     """
-    Travel mode used to access other airports
+    Mode that will be used in the reverse direction.
     """
 
-    airport_access_transit_use_elsewhere: NoneOrNanString[e.OtherFlightAndTransitUseFrequency] = Field(
-        ..., description = "Frequency of Transit use by respondent to access other airports"
+    reverse_mode_predicted_other: NoneOrNanString[str] = Field(
+        ..., description = "Mode (not listed) which will be used in the reverse direction"
     )
     """
-    Frequency of Transit use by respondent to access other airports.
+    Mode (not listed) which will be used in the reverse direction
     """
 
-    airportaccesstransitname: NoneOrNanString[str] = Field(
-        ..., description = "Names of airports accessed by transit"
-    )
-    """
-    Names of airports accessed by transit.
-    """
+    # @model_validator(mode="after")
+    # def validate_missing_fields(cls, values):
+    #     null_fields = [field for field, value in values if value is None and 'other' not in field]
+    #     critical_fields = ['party_size_flight']
+    #     if null_fields:
+    #         values.valid_record = False
+    #         values.validation_error = f"Missing Fields: {', '.join(null_fields)}"
+    #         values.validation_num_errors = len(null_fields)
+    #         if len(null_fields)>3:
+    #             values.validation_severity = "High"
+    #         else:
+    #             values.validation_severity = "Low"
+    #         if any(field in critical_fields for field in null_fields):
+    #             values.validation_severity = "Critical"
+    #     return values
 
+    @model_validator(mode="after")
+    def validate_record(cls, values):
+        # Validate using SkipLogicValidator
+        errors, severity_levels, num_errors = skip_logic_validator.validate("ArrivingPassengerVisitor", values.dict())
+        
+        # Update validation fields
+        values.valid_record = len(errors) == 0
+        values.validation_error = errors
+        values.validation_severity = cls.determine_severity(severity_levels)
+        values.validation_num_errors = num_errors
+        
+        return values
+    
+    @staticmethod
+    def determine_severity(severity_levels):
+        if severity_levels["Critical"] > 0:
+            return "Critical"
+        elif severity_levels["Non-Critical"] > 0:
+            return "Non-Critical"
+        return "None"
+    
+    pass

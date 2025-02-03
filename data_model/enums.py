@@ -47,6 +47,16 @@ class PassengerType(IntEnum):
     CONNECTING = 3
 
 
+class PassengerSegment(IntEnum):
+    """
+    Integer Mapping for type of passenger segment
+    """
+    RESIDENT_ARRIVING = 1
+    RESIDENT_DEPARTING = 2
+    VISITOR_ARRIVING = 3
+    VISITOR_DEPARTING = 4
+
+
 class ResidentVisitorGeneral(IntEnum):
     """
     Integer Mapping for the respondent if they are resident, visitor or neither. First option if departing, second if arriving
@@ -58,6 +68,7 @@ class ResidentVisitorGeneral(IntEnum):
     NEITHER = 5
     OTHER = 98
     REFUSED = 99
+
 
 class ResidentVisitorFollowup(IntEnum):
     """
@@ -75,6 +86,19 @@ class ResidentVisitorFollowup(IntEnum):
 #     NO = 0
 #     OTHER = 98
 
+class PMSA(IntEnum):
+    """
+    Integer Mapping for Pseudo Metropolitan Statistical Areas
+    """
+    DOWNTOWN = 1
+    CENTRAL = 2
+    NORTH_CITY = 3
+    SOUTH_SUBURBAN = 4
+    EAST_SUBURBAN = 5
+    NORTH_COUNTY_WEST = 6
+    NORTH_COUNTY_EAST = 7
+    EAST_COUNTY = 8
+    EXTERNAL = 99
 
 class ResidentVisitor(IntEnum):
     """

@@ -6,7 +6,7 @@ The data manipulation procedures are stored in a series of Jupyter notebooks (wi
 
 # Environments
 1. The Python environment used in the GitHub Actions to create the API documentation website is specified in the `/.github/workflows/docs.yml` file with the requirements defined in the `docs_requirements.txt` file. 
-2. The Python environment used to run the Jupyter notebooks is Python 3.12, with the requirements defined in the `requirements.txt` file. See the `create-env.bat` file for commands needed to create a virtual environment to run the notebooks. If using VS Code and you cannot find the kernal in the list of options, try running the `add_kernal_to_jupyter.bat` instructions and then restarting VS Code. 
+2. The Python environment used to run the Jupyter notebooks is Python 3.12, with the requirements defined in the `requirements.txt` file. See the `create-env.bat` file for commands needed to create a virtual environment to run the notebooks. If using VS Code and you cannot find the kernel in the list of options, try running the `add_kernel_to_jupyter.bat` instructions and then restarting VS Code. 
 3. The R environment used to run the single R notebook is R 2023.12.1+402. The notebook uses only the `tidyverse` and `yaml` third-party libraries. 
 
 # Data Processing Sequence
@@ -33,23 +33,42 @@ The Python Pydantic package makes validating data with a data model straightforw
 
 ```{python}
 employee_list = []
-air_passenger_list = []
+arriving_air_passenger_resident_list = []
+arriving_air_passenger_visitor_list = []
+departing_air_passenger_resident_list = []
+departing_air_passenger_visitor_list = []
 other_list = []
 failed_records = []
 
 for respondent in respondent_list:
-    market_segment = respondent["marketsegment"]
-    try:
+     market_segment = respondent["marketsegment"]
+     try:
         if market_segment == e.Type.EMPLOYEE:
             ev = Employee(** respondent)
             employee_list.append(ev)
         elif market_segment == e.Type.PASSENGER:
-             av = AirPassenger(** respondent)
-             air_passenger_list.append(av)
+             passenger_segment= respondent["passenger_segment"]
+             if passenger_segment == e.PassengerSegment.RESIDENT_ARRIVING:
+                    apr = ArrivingPassengerResident(** respondent)
+                    arriving_air_passenger_resident_list.append(apr)
+             elif passenger_segment == e.PassengerSegment.VISITOR_ARRIVING:
+                    apv = ArrivingPassengerVisitor(** respondent)
+                    arriving_air_passenger_visitor_list.append(apv)
+             elif passenger_segment == e.PassengerSegment.RESIDENT_DEPARTING:
+                    dpr = DepartingPassengerResident(** respondent)
+                    departing_air_passenger_resident_list.append(dpr)
+             elif passenger_segment == e.PassengerSegment.VISITOR_DEPARTING:
+                    dpv = DepartingPassengerVisitor(** respondent)
+                    departing_air_passenger_visitor_list.append(dpv)
+             else:
+                    rv = Respondent(** respondent)
+                    other_list.append(rv)
+
         else:
             rv = Respondent(** respondent)
             other_list.append(rv)
-    except ValidationError as err:
+            
+     except ValidationError as err:
             respondent['error_flag'] = 'failed'
             respondent['error_message'] = str(err)
             failed_records.append(respondent) 
@@ -59,7 +78,7 @@ failed_df = pd.DataFrame(failed_records)
 failed_df.head()
 ```
 
-This code first determines whether or not the relevant record is an `Employee` or an `AirPassenger` (both of which are based on the `Respondent` data model class) and then instantiates the relevant data model class. This instantiation does the validation. If the validation is unsuccessful, these "failed" records are stored in a separate data frame.
+This code first determines whether or not the relevant record is an `Employee` or an `ArrivingPassengerResident`, `ArrivingPassengerVisitor`, `DepartingPassengerResident` or a `DepartingPassengerVisitor` (all of which are based on the `Respondent` data model class) and then instantiates the relevant data model class. This instantiation does the validation. If the validation is unsuccessful, these "failed" records are stored in a separate data frame.
 
 The sampling frame of the survey was passengers departing the airport. To augment the data, we create synthetic records of travelers leaving the airport using data from the survey. The method for doing this is stored in `/data_model/utils.py`.
 
@@ -85,15 +104,24 @@ config_file <- paste0(interim_dir, "expansion_config_departing_and_arriving.yaml
 Please also note that the working directory is set in the code to be the procedures robust against different type of execution types (e.g., running line by line, "knitting" to create an HTML record of the script). Users will need to adjust the working directory prior to executing the code locally. 
 
 The script generates numerous diagnostic data, as well as a `csv` file that contains the expansion weight for each record, with a separate file for each expansion approach. 
+### 3. `/notebooks/03-merge-weights-to-data.ipynb`
+This notebook attaches populates the `weight` field in the `data_model_output.csv` file generated in step 1 using the `weights_only_file` generated in step 2.
 
-### 3. `/notebooks/03-create-variable-summaries.ipynb`
+### 4. `/notebooks/04-create-variable-summaries.ipynb`
 This notebook creates lightly formatted variable summaries in Microsoft Word format. It joins the data model output from step 1 with the weights generated in step 2. The summaries currently use the departing only set of weights. 
 
-### 4. `/notebooks/04-mode-summaries-by-date.ipynb`
+### 5. `/notebooks/05-mode-summaries-by-date.ipynb`
 This is a utility notebook used for doing *ad hoc* investigation of mode choice outcomes across the survey period. It is not part of the core data processing workflow.
 
-### 5. `/notebooks/05-compare-pilot-and-original.ipynb`
+### 6. `/notebooks/06-compare-pilot-and-original.ipynb`
 This is a utility notebook used to compare the outcomes from the pilot phase of the survey and the non-pilot phase of the survey. 
+
+### 7. `/notebooks/07-create-zonal-distribution-summaries.ipynb`
+This notebooks generates the distribution of resident passengers by PMSA and Municipal Zones. It generates 4 summaries, number of travelers and travel parties, weighted and unweighted for each zonal system and saves it as an excel file. See `/reports/zonal_distribution_resident_passengers.xlsx`.
+
+### 8. `/notebooks/08-make-zonal-distribution-maps.ipynb`
+This notebooks generates maps using shapefiles of PMSA and Municipal Zones and plotting the trip origins for resident departing passengers (or destinations for resident arriving passengers).
+
 
 ### 10. `/notebooks/10-make-excel-data-dictionary-from-data-model.ipynb`
 The data model can be examined and queried via the [API documentation](https://sandag.github.io/Survey_Airport/index.html). For many users, this will be the preferred way to examine variable definitions and response options. Others may prefer a more conventional spreadsheet. This script creates a Microsoft Excel spreadsheet from the data model. This allows users to examine a data dictionary in Excel, while maintaining a single source of truth (the data model). See `/reports/data_dictionary.xlsx`. 
