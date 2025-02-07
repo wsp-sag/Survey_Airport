@@ -798,6 +798,48 @@ class Respondent(PydanticModel):
     Whether the respondent is of a qualified age to participate in the survey.
     """
 
+    resident_visitor: NoneOrNan[e.ResidentVisitor] = Field(
+        ...,
+        description="Where the respondent resides in the airport service area most of the year",
+    )
+    """
+    Where the respondent resides in the airport service area most of the year.
+    """
+
+    home_location_city: NoneOrNanString[str] =  Field(
+        ..., description = "City of the home location of the respondent"
+    )
+    """
+    City of the home location of the respondent
+    """
+
+    home_location_state: NoneOrNanString[str] =  Field(
+        ..., description = "State of the home location of the respondent"
+    )
+    """
+    State of the home location of the respondent
+    """
+
+    home_location_zip: NoneOrNanString[Union[str,int]] =  Field(
+        ..., description = "ZIP of the home location of the respondent"
+    )
+    """
+    ZIP of the home location of the respondent
+    """
+
+    home_location_latitude: NoneOrNanString[Latitude] =  Field(
+        ..., description = "Latitude of the home location of the respondent"
+    )
+    """
+    Latitude of the home location of the respondent
+    """
+
+    home_location_longitude: NoneOrNanString[Longitude]=   Field(
+        ..., description = "Longitude of the home location of the respondent"
+    )
+    """
+    Longitude of the home location of the respondent
+    """
  #Add new here
     # home_location_address: NoneOrNanString[str] =  Field(
     #     ..., description = "Street Address of the home location of the respondent"
@@ -1357,13 +1399,6 @@ class AirPassenger(Respondent):
     True if respondent lives outside San Diego Region and is going home by ground transportation
     """
     
-    resident_visitor: NoneOrNan[e.ResidentVisitor] = Field(
-        ...,
-        description="Where the respondent resides in the airport service area most of the year",
-    )
-    """
-    Where the respondent resides in the airport service area most of the year.
-    """
 
     passenger_segment: NoneOrNan[e.PassengerSegment] = Field(
         ..., description="Segment of the air passenger: (Resident/Visitor and Arriving/Departing)"
@@ -1392,41 +1427,6 @@ class AirPassenger(Respondent):
     )
     """
     State of residence for US and Mexico residents.
-    """
-    
-    home_location_city: NoneOrNanString[str] =  Field(
-        ..., description = "City of the home location of the respondent"
-    )
-    """
-    City of the home location of the respondent
-    """
-
-    home_location_state: NoneOrNanString[str] =  Field(
-        ..., description = "State of the home location of the respondent"
-    )
-    """
-    State of the home location of the respondent
-    """
-
-    home_location_zip: NoneOrNanString[Union[str,int]] =  Field(
-        ..., description = "ZIP of the home location of the respondent"
-    )
-    """
-    ZIP of the home location of the respondent
-    """
-
-    home_location_latitude: NoneOrNanString[Latitude] =  Field(
-        ..., description = "Latitude of the home location of the respondent"
-    )
-    """
-    Latitude of the home location of the respondent
-    """
-
-    home_location_longitude: NoneOrNanString[Longitude]=   Field(
-        ..., description = "Longitude of the home location of the respondent"
-    )
-    """
-    Longitude of the home location of the respondent
     """
 
     passenger_type: NoneOrNanString[e.PassengerType] = Field(

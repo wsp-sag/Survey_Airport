@@ -696,6 +696,7 @@ class Employers(IntEnum):
     WESTJET = 75
     SDCRAA_SDIA = 76
     FLAGSHIP = 77	
+    HMS_HOST = 78
     OTHER_SEPCIFY = 98	
 
 
@@ -752,7 +753,7 @@ class CommuteDays(IntEnum):
     """
     Integer mapping for number of days employee commutes to SAN
     """
-
+    ZERO = 0
     ONE = 1
     TWO = 2
     THREE = 3

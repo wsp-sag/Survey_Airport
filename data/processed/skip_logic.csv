@@ -39,3 +39,7 @@ DepartingPassengerResident,,,critical,general_use_transit_resident,,Non-Critical
 ArrivingPassengerVisitor,,,critical,general_use_transit_visitor_home,,Non-Critical
 DepartingPassengerVisitor,,,critical,general_use_transit_visitor_home,,Non-Critical
 DepartingPassengerResident,main_mode ,"1,2,3,4,5,6,7,8,9,10,11,15,16,17,18,21,22,23,24,25,26,27,28,30",missing,car_available,,Non-Critical
+DepartingPassengerVisitor,,,critical,nights_visited,,Non-Critical
+ArrivingPassengerResident,,,critical,nights_away,,Non-Critical
+ArrivingPassengerVisitor,,,critical,nights_visited,,Non-Critical
+DepartingPassengerResident,,,critical,nights_away,,Non-Critical
