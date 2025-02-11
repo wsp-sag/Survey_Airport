@@ -730,6 +730,17 @@ class Occupations(IntEnum):
     REFUSED = 99
 
 
+class OccupationDetail(IntEnum):
+    """
+    Integer mapping for the occupation details for an airport employee
+    """
+    WORK_NEAR_PASSENGERS = 1
+    WORK_IN_OFFICE = 2
+    WORK_ELSEWHERE = 3
+    OTHER = 98
+    REFUSED = 99
+
+
 class HoursWorked(IntEnum):
     """
     Integer mapping for number of hours employee works at SAN

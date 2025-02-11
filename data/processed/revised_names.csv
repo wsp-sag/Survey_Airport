@@ -385,3 +385,20 @@ SDIA_ACCESS_SPLIT_Other_,sdia_accessmode_split_other
 REASONS_NO_TRANSIT_Other_,reasons_no_transit_other
 GEN_MODES_VISITOR_Other_,general_modes_used_visitor_other
 ALT_COMMUTE_MODES_Other_,alt_commute_mode_other
+TERMINAL_Code_,interview_location
+TERMINAL,interview_location_label
+ORIGIN_ADDRESS [CITY],origin_city
+ORIGIN_ADDRESS [STATE],origin_state
+ORIGIN_ADDRESS [ZIP],origin_zip
+ORIGIN_ADDRESS [LAT],origin_latitude
+ORIGIN_ADDRESS [LONG],origin_longitude
+DESTIN_ADDRESS [CITY],destination_city
+DESTIN_ADDRESS [STATE],destination_state
+DESTIN_ADDRESS [ZIP],destination_zip
+DESTIN_ADDRESS [LAT],destination_latitude
+DESTIN_ADDRESS [LONG],destination_longitude
+DESCRIBE_JOB_SPECIFY_Code,occupation_detail
+DESCRIBE_JOB_SPECIFY,occupation_detail_label
+not_a_question_2,delete
+id,respondentid
+Date started,date_completed

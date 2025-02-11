@@ -1095,6 +1095,13 @@ class Employee(Respondent):
     Occupation (other, not listed) of the employee
     """
 
+    occupation_detail: NoneOrNan[e.OccupationDetail] = Field(
+        ..., description = "Occupation Details for the airport employee"
+    )
+    """
+    Occupation Details for the airport employee
+    """
+
     number_hours_worked: NoneOrNan[e.HoursWorked] = Field(
         ..., description = "Number of hours respondent worked in the past 7 days"
     )
