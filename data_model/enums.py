@@ -914,6 +914,26 @@ class TravelMode(IntEnum):
     REFUSED_NO_ANSWER = 99
 
 
+class TravelModeGrouped(IntEnum):
+    """
+    Integer mapping for consolidated modes
+    """
+    WALK = 1
+    WHEELCHAIR_OR_OTHER_MOBILITY_DEVICE = 2
+    MICROMOBILITY_SHARED = 3
+    MICROMOBILITY_PERSONAL = 4
+    RIDEHAIL_TAXI = 5
+    PUBLIC_TRANSPORTATION = 6
+    PERSONAL_CAR_DROPPED_OFF_PICKED_UP = 7
+    PERSONAL_CAR_PARKED = 8
+    SHARED_SHUTTLE_VAN = 9
+    BUS_992 = 10
+    AIRPORT_FLYER_SHUTTLE = 11
+    RENTAL_CAR = 12
+    OTHER = 98
+    REFUSED_NO_ANSWER = 99
+
+
 class BusRoutes(Enum):
     """
     Enum Mappings for MTS Bus Routes

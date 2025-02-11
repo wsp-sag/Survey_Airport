@@ -359,6 +359,12 @@ class Trip(PydanticModel):
     """
     Name of the other Main Mode to/from airport.
     """
+    
+    main_mode_grouped: NoneOrNanString[e.TravelModeGrouped] = Field(
+        ..., description = "Grouped Main Mode to/from airport")
+    """
+    Grouped Main Mode to/from airport
+    """
 
     shared_van_other: NoneOrNanString[str] = Field(
         ..., description = "Name of the other shared van service used by respondent"
@@ -456,6 +462,13 @@ class Trip(PydanticModel):
     )
     """
     Other Access mode to first transit vehicle for inbound trip to the airport.
+    """
+
+    access_mode_grouped: NoneOrNanString[e.TravelModeGrouped] = Field(
+        ..., description = "Grouped Access mode to first transit vehicle for inbound trip to the airport"
+    )
+    """
+    Grouped Access mode to first transit vehicle for inbound trip to the airport.
     """
 
     taxi_fhv_fare: NoneOrNanString[Union[str,float]] = Field(
@@ -651,6 +664,13 @@ class Trip(PydanticModel):
     )
     """
     Other Egress mode from last transit vehicle for outbound trip.
+    """
+
+    egress_mode_grouped: NoneOrNanString[e.TravelModeGrouped] = Field(
+        ..., description = "Grouped Egress mode from last transit vehicle for outbound trip"
+    )
+    """
+    Grouped Egress mode from last transit vehicle for outbound trip.
     """
 
     transit_boarding_stop_name: NoneOrNanString[str] = Field(
@@ -1145,6 +1165,13 @@ class Employee(Respondent):
     Reverse commute mode for the employee (other, not listed)
     """
 
+    reverse_commute_mode_grouped: NoneOrNanString[e.TravelModeGrouped] = Field(
+        ..., description = "Grouped reverse commute mode for the employee"
+    )
+    """
+    Grouped reverse commute mode for the employee
+    """
+
     same_commute_mode: NoneOrNanString[e.YesNoType] = Field(
         ..., description = "True if the employee always used the same travel mode to commute in the last 30 days"
     )
@@ -1298,6 +1325,13 @@ class Employee(Respondent):
     """
     Other mode used by the employee to commute to the airport in the past 30 days
     """
+
+    alt_commute_mode_list: NoneOrNanString[str] = Field(
+        ..., description = "List of modes used by the employee to commute to the airport in the past 30 days.")
+    """
+    List of modes used by the employee to commute to the airport in the past 30 days
+    """
+
 
     commute_mode_decision: NoneOrNanString[e.ModeDecision] = Field(
         ..., description = "Factor affecting the Mode choice of the employee"
@@ -1929,6 +1963,13 @@ class AirPassenger(Respondent):
     Travel mode used to access other airports
     """
 
+    other_airport_accessmode_grouped: NoneOrNanString[e.TravelModeGrouped] =  Field(
+        ..., description = "Grouped Travel mode used to access other airports"
+    )
+    """
+    Grouped Travel mode used to access other airports
+    """
+
     airport_access_transit_use_elsewhere: NoneOrNanString[e.OtherFlightAndTransitUseFrequency] = Field(
         ..., description = "Frequency of Transit use by respondent to access other airports"
     )
@@ -2119,6 +2160,12 @@ class DepartingPassengerResident(DepartingAirPassenger, Resident):
     Mode that will be used in the reverse direction.
     """
 
+    reverse_mode_predicted_grouped: NoneOrNanString[e.TravelModeGrouped] = Field(
+        ..., description = "Grouped Mode that will be used in the reverse direction")
+    """
+    Grouped Mode that will be used in the reverse direction
+    """
+
     reverse_mode_predicted_other: NoneOrNanString[str] = Field(
         ..., description = "Mode (not listed) which will be used in the reverse direction"
     )
@@ -2160,6 +2207,13 @@ class DepartingPassengerVisitor(DepartingAirPassenger, Visitor):
     """
     Mode that was used in the reverse direction.
     """
+
+    reverse_mode_grouped: NoneOrNanString[e.TravelModeGrouped] = Field(
+        ..., description = "Grouped Mode that was used in the reverse direction")
+    """
+    Grouped Mode that was used in the reverse direction
+    """
+
     general_modes_used_visitor_taxi: NoneOrNanString[bool] = Field(
         ..., description = "True if the visitor used Taxi as a mode during their visit to the San Diego Region"
     )
@@ -2341,7 +2395,14 @@ class DepartingPassengerVisitor(DepartingAirPassenger, Visitor):
     """
     Other mode used by the visitor during their visit to the San Diego Region.
     """
-    
+
+    general_modes_used_visitor_list: NoneOrNanString[str] = Field(
+        ..., description = "List of modes used by the visitor during their visit to the San Diego Region"
+    )
+    """
+    List of modes used by the visitor during their visit to the San Diego Region
+    """
+
     @model_validator(mode="after")
     def validate_record(cls, values):
         # Validate using SkipLogicValidator
