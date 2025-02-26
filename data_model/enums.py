@@ -697,7 +697,7 @@ class Employers(IntEnum):
     SDCRAA_SDIA = 76
     FLAGSHIP = 77	
     HMS_HOST = 78
-    OTHER_SEPCIFY = 98	
+    OTHER_SPECIFY = 98	
 
 
 class Occupations(IntEnum):
@@ -1010,7 +1010,7 @@ class ParkingCostFrequency(IntEnum):
     MONTHLY = 2
     DAILY = 3
     HOURLY = 4
-    OTHER_SEPCIFY = 98
+    OTHER_SPECIFY = 98
     REFUSED = 99
 
 
@@ -1239,7 +1239,62 @@ class SurveyLanguage(Enum):
     REFUSED = 99
 
 class YesNoType(IntEnum):
+    """
+    Enum for Yes or No Type Questions
+    """
     YES = 1
     NO = 2
     OTHER = 98
     REFUSED = 99
+
+class SPImportance(IntEnum):
+    """
+    Importance levels for Stated Preference Responses
+    """
+    NOT_IMPORTANT = 1
+    SLIGHTLY_IMPORTANT = 2
+    IMPORTANT = 3
+    VERY_IMPORTANT = 4
+    EXTREMELY_IMPORTANT = 5
+
+class SPWillingToWalkTime(IntEnum):
+    """
+    Willingness to walk time levels for Stated Preference Responses
+    """
+    LESS_THAN_TWO_MINS = 1
+    LESS_THAN_FIVE_MINS = 2
+    LESS_THAN_FIFTEEN_MINS = 3
+    LESS_THAN_THIRTY_MINS = 4
+    NOT_INTERESTED = 5
+
+class SPNumTransfers(IntEnum):
+    """
+    Number of transfers levels for Stated Preference Responses
+    """
+    NONE = 0
+    ONE = 1
+    TWO = 2
+    THREE_OR_MORE = 3
+    NOT_WILLING_TO_TRANSFER = 4
+
+class SPLikelihood(IntEnum):
+    """
+    Likelihood levels for Stated Preference Responses
+    """
+    HIGHLY_UNLIKELY = 1
+    UNLIKELY = 2
+    NEUTRAL_DONT_KNOW = 3
+    LIKELY = 4
+    VERY_LIKELY = 5
+
+class SPDropoffType(Enum):
+    """
+    Represents the type of person who dropped off the respondent at the airport
+    """
+    SPOUSE_PARTNER = 1
+    PARENT = 2
+    CHILD = 3
+    OTHER_RELATIVE = 4
+    FRIEND = 5
+    COLLEAGUE = 6
+    OTHER = 7

@@ -203,10 +203,18 @@ def add_synthetic_records(df):
                 synthetic_record['main_mode_grouped'], synthetic_record['reverse_mode_grouped'] = row['reverse_mode_grouped'], row['main_mode_grouped']
             elif pd.notna(row['reverse_mode_predicted']):
                 synthetic_record['main_mode_grouped'], synthetic_record['reverse_mode_predicted_grouped'] = row['reverse_mode_predicted_grouped'], row['main_mode_grouped']
+            
+            synthetic_record['main_mode_grouped'], synthetic_record['reverse_mode_combined'] = row['reverse_mode_combined'], row['main_mode_grouped']
+
 
             # Access and Egress Modes:
-            synthetic_record['access_mode'], synthetic_record['egress_mode'] = row['egress_mode'], row['access_mode']
-            synthetic_record['access_mode_grouped'], synthetic_record['egress_mode_grouped'] = row['egress_mode_grouped'], row['access_mode_grouped']
+            # synthetic_record['access_mode'], synthetic_record['egress_mode'] = row['egress_mode'], row['access_mode']
+            # synthetic_record['access_mode_grouped'], synthetic_record['egress_mode_grouped'] = row['egress_mode_grouped'], row['access_mode_grouped']
+            # Set access and egress modes to None
+            synthetic_record["access_mode"] = None
+            synthetic_record["egress_mode"] = None
+            synthetic_record["access_mode_grouped"] = None
+            synthetic_record["egress_mode_grouped"] = None
 
             # Activity Type
             synthetic_record['origin_activity_type'], synthetic_record['destination_activity_type'] = row['destination_activity_type'], row['origin_activity_type']
