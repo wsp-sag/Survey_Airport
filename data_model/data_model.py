@@ -450,6 +450,20 @@ class Trip(PydanticModel):
     Other Fourth Transit Route to the airport
     """
 
+    transit_routes_list: NoneOrNanString[str] = Field(
+        ..., description = "List of transit routes used by the respondent (comma separated)"
+    )
+    """
+    List of transit routes used by the respondent (comma separated)
+    """
+
+    num_transit_transfers: NoneOrNanString[int] = Field(
+        ..., description = "Number of transit transfers made by the respondent"
+    )
+    """
+    Number of transit transfers made by the respondent.
+    """
+    
     access_mode: NoneOrNanString[e.TravelMode] = Field(
         ..., description = "Access mode to first transit vehicle for inbound trip to the airport"
     )
