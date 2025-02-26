@@ -198,14 +198,17 @@ def add_synthetic_records(df):
             elif pd.notna(row['reverse_mode_predicted']):
                 synthetic_record['main_mode'], synthetic_record['reverse_mode_predicted'] = row['reverse_mode_predicted'], row['main_mode']
 
+                
+            synthetic_record['reverse_mode_combined'] = row['main_mode_grouped']
             #Similar for grouped modes
             if pd.notna(row['reverse_mode_grouped']):
                 synthetic_record['main_mode_grouped'], synthetic_record['reverse_mode_grouped'] = row['reverse_mode_grouped'], row['main_mode_grouped']
-            elif pd.notna(row['reverse_mode_predicted']):
+            elif pd.notna(row['reverse_mode_predicted_grouped']):
                 synthetic_record['main_mode_grouped'], synthetic_record['reverse_mode_predicted_grouped'] = row['reverse_mode_predicted_grouped'], row['main_mode_grouped']
             
-            synthetic_record['main_mode_grouped'], synthetic_record['reverse_mode_combined'] = row['reverse_mode_combined'], row['main_mode_grouped']
-
+            #synthetic_record['main_mode_grouped'], synthetic_record['reverse_mode_combined'] = row['reverse_mode_combined'], row['main_mode_grouped']
+            # print(row['main_mode_grouped'], row['reverse_mode_combined'])
+            
 
             # Access and Egress Modes:
             # synthetic_record['access_mode'], synthetic_record['egress_mode'] = row['egress_mode'], row['access_mode']
