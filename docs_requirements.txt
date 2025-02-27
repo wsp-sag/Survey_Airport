@@ -11,6 +11,6 @@ mkdocs-jupyter
 mkdocs-material
 mkdocs-material-extensions
 mkdocstrings
-mkdocstrings-python
+mkdocstrings-python-legacy
 mkdocs-table-reader-plugin
 griffe
