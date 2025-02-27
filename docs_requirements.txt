@@ -10,7 +10,6 @@ mkdocs-awesome-pages-plugin
 mkdocs-jupyter
 mkdocs-material
 mkdocs-material-extensions
-mkdocstrings
-mkdocstrings-python-legacy
+mkdocstrings[python]
 mkdocs-table-reader-plugin
 griffe
