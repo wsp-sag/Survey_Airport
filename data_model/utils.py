@@ -11,26 +11,35 @@ import enums as e
 import geopandas as gpd
 from shapely.geometry import Point
 
-def map_zones(df, lat_col, long_col, shapefile, zone_column, external_zone_value):
+def map_zones(
+    df: pd.DataFrame, 
+    lat_col: str, 
+    long_col: str, 
+    shapefile: str, 
+    zone_column: str, 
+    external_zone_value: Any
+) -> gpd.GeoDataFrame:
     """
     Maps coordinates in a DataFrame to zones defined in a shapefile.
 
     Args:
-        data (pd.DataFrame): Input DataFrame with latitude and longitude columns.
+        df (pd.DataFrame): Input DataFrame with latitude and longitude columns.
         lat_col (str): Column name for latitude in the DataFrame.
         long_col (str): Column name for longitude in the DataFrame.
         shapefile (str): Path to the shapefile containing zone geometries.
         zone_column (str): Column name in the shapefile that contains zone names.
+        external_zone_value (Any): Value to return if a point is not within any zone
+            in the shapefile.
 
     Returns:
-        pd.Series: A Series with zone names mapped to each row in the DataFrame.
+        pd.GeoDataFrame: A GeoDataFrame with zone names mapped to each row.
     """
     # Load the shapefile into a GeoDataFrame
-    zones_gdf = gpd.read_file(shapefile)
+    zones_gdf: gpd.GeoDataFrame = gpd.read_file(shapefile)
     
     # Ensure the shapefile has a consistent CRS (WGS84)
     zones_gdf = zones_gdf.to_crs(epsg=4326)
-    data = df.copy()
+    data: pd.DataFrame = df.copy()
     # Add a geometry column to the DataFrame for spatial joining
     data["geometry"] = data.apply(
         lambda row: Point(row[long_col], row[lat_col]) 
@@ -39,13 +48,13 @@ def map_zones(df, lat_col, long_col, shapefile, zone_column, external_zone_value
     )
     
     # Convert the DataFrame to a GeoDataFrame
-    data_gdf = gpd.GeoDataFrame(data, geometry="geometry", crs="EPSG:4326")
+    data_gdf: gpd.GeoDataFrame = gpd.GeoDataFrame(data, geometry="geometry", crs="EPSG:4326")
     
     # Perform a spatial join to map points to zones
-    mapped_gdf = gpd.sjoin(data_gdf, zones_gdf, how="left", predicate="within")
+    mapped_gdf: gpd.GeoDataFrame = gpd.sjoin(data_gdf, zones_gdf, how="left", predicate="within")
     
     # Check if the zone_column is of integer type
-    is_zone_int = pd.api.types.is_integer_dtype(zones_gdf[zone_column])
+    is_zone_int: bool = pd.api.types.is_integer_dtype(zones_gdf[zone_column])
     
     # Map zone names, handling cases where coordinates are missing or no match is found
     def get_zone(row):
@@ -75,10 +84,17 @@ def extract_base_type(typ):
     return typ
 
 
-def add_enum_label_columns(df,model):
+def add_enum_label_columns(df,model) -> pd.DataFrame:
     """
     After the datamodel output is converted into a dataframe, this method adds a column to the output dataframe for each Enum variable in the datamodel. This column 
     shows the Enum label.
+
+    Args:
+        df (pd.DataFrame): The DataFrame to which the Enum label columns will be added.
+        model (BaseModel): A Pydantic model with fields annotated with types, potentially including Enums.
+
+    Returns:
+        pd.DataFrame: The modified DataFrame with additional Enum label columns.
     """
     
     for field, field_type in model.__annotations__.items():
@@ -125,14 +141,14 @@ def nan_to_none(cls, value: Any):
     return value
 
 
-def military_to_clock(military_time):
+def military_to_clock(military_time: str) -> str:
     """Converts a military time string (HHMM) to a 12-hour clock format string (hh:mm AM/PM).
 
     Args:
-        military_time: A string representing time in 24-hour format (e.g., "0600").
+        military_time (str): A string representing time in 24-hour format (e.g., "0600").
 
     Returns:
-        A string representing time in 12-hour clock format (e.g., "6:00 AM").
+        str: A string representing time in 12-hour clock format (e.g., "6:00 AM").
 
     Raises:
         ValueError: If the input string is not in the correct format (HHMM).
@@ -161,10 +177,15 @@ def military_to_clock(military_time):
     return f"{clock_hours:02d}:{minutes:02d} {period}"
 
 
-def add_synthetic_records(df):
+def add_synthetic_records(df) -> pd.DataFrame:
     """
-    Adds synthetic responses (arriving passengers corresponding to departing passengers) to the survey.
-    Keeps Sociodemographics and other attributes same, exchanges trip based characteristics, like modes and origin, destination related attributes.
+    Adds synthetic responses to the survey DataFrame.
+
+    Args:
+        df (pd.DataFrame): The original DataFrame containing survey responses.
+        
+    Returns:
+        pd.DataFrame: A DataFrame with synthetic responses added.
     """
      # Create a list to store synthetic records
     synthetic_records = []
