@@ -3,6 +3,7 @@ unique_id,keep
 respondentid,keep
 is_completed,delete
 date_completed,keep
+time_completed,keep
 is_pilot,keep
 is_self_administered,keep
 record_type_synthetic,keep
@@ -135,6 +136,9 @@ general_use_transit_visitor_home_label,delete
 home_location_city,keep
 home_location_latitude,keep
 home_location_longitude,keep
+home_location_municipal_zone,keep
+home_location_pmsa,keep
+home_location_pmsa_label,keep
 home_location_state,keep
 home_location_zip,keep
 household_income,keep

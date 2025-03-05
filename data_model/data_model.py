@@ -2,7 +2,7 @@
 Data Model for the SDIA Survey
 """
 
-from datetime import datetime
+from datetime import datetime, time
 from math import isnan
 from typing import Annotated, Any, ClassVar, Literal, Optional, TypeVar, Union, List
 
@@ -792,11 +792,19 @@ class Respondent(PydanticModel):
 
 
     date_completed: NoneOrNanString[datetime] = Field(
-        ..., description = "Date and time when respondent completed the survey"
+        ..., description = "Date when respondent completed the survey"
     )
     """
-    Date and time when respondent completed the survey
+    Date when respondent completed the survey
     """
+
+    time_completed: NoneOrNanString[time] = Field(
+        ..., description = "Time when respondent completed the survey"
+    )
+    """
+    Time when respondent completed the survey
+    """
+
 
     submit: NoneOrNanString[bool] = Field(
         ..., description = "True if the record is to be used for submittal"
@@ -874,6 +882,20 @@ class Respondent(PydanticModel):
     )
     """
     Longitude of the home location of the respondent
+    """
+
+    home_location_municipal_zone: NoneOrNanString[str] = Field(
+        ..., description="Municipal zone of home address of the respondent"
+    )
+    """
+    Municipal zone of home address of the Resident
+    """
+
+    home_location_pmsa: NoneOrNanString[e.PMSA] = Field(
+        ..., description="Pseudo MSA of home address of the Resident"
+    )
+    """
+    Pseudo MSA of home address of the Resident
     """
  #Add new here
     # home_location_address: NoneOrNanString[str] =  Field(

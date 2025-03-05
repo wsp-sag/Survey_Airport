@@ -1193,6 +1193,7 @@ class HouseholdIncome(IntEnum):
     PREFER_NOT_TO_SAY = 14  
     BETWEEN_200_299K = 15
     MORE_THAN_300K = 16
+    MORE_THAN_150K = 17
     OTHER = 98
     REFUSED = 99
 
