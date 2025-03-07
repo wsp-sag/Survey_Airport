@@ -17,8 +17,12 @@ Trip,inbound_or_outbound,1,missing,origin_latitude,,Critical
 Trip,inbound_or_outbound,1,missing,origin_longitude,,Critical
 Employee,,,critical,shift_start_time,,Non-Critical
 Employee,,,critical,shift_end_time,,Non-Critical
-Trip,,,critical,trip_start_time,,Non-Critical
-Trip,,,critical,trip_arrival_time,,Non-Critical
+Employee,,,critical,trip_start_time,,Non-Critical
+Employee,,,critical,trip_arrival_time,,Non-Critical
+DepartingPassengerResident,,,critical,trip_arrival_time,,Non-Critical
+DepartingPassengerResident,,,critical,trip_arrival_time,,Non-Critical
+DepartingPassengerVisitor,,,critical,trip_arrival_time,,Non-Critical
+DepartingPassengerVisitor,,,critical,trip_arrival_time,,Non-Critical
 DepartingPassengerVisitor,,,critical,reverse_mode,,Non-Critical
 ArrivingPassengerResident,,,critical,reverse_mode,,Non-Critical
 ArrivingPassengerVisitor,,,critical,reverse_mode_predicted,,Non-Critical

@@ -373,20 +373,6 @@ class Trip(PydanticModel):
     Name of the other shared van service used by respondent.
     """
 
-    trip_start_time: NoneOrNan[e.DepartTime] = Field(
-        ..., description="Start time of the trip"
-    )
-    """
-    Start time of the trip.
-    """
-
-    trip_arrival_time: NoneOrNan[e.DepartTime] = Field(
-        ..., description="Arrival time of the trip"
-    )
-    """
-    Arrival time of the trip.
-    """
-
     number_transit_vehicles_to_airport: NoneOrNanString[e.NumTransfers] = Field(
         ..., description = "Number of transit transfers for the inbound trip to the airport"
     )
@@ -1296,6 +1282,20 @@ class Employee(Respondent):
     # """
     # Longitude and Latitude of building where the employee starts their shift.
     # """
+    
+    trip_start_time: NoneOrNan[e.DepartTime] = Field(
+        ..., description="Start time of the trip"
+    )
+    """
+    Start time of the trip.
+    """
+
+    trip_arrival_time: NoneOrNan[e.DepartTime] = Field(
+        ..., description="Arrival time of the trip"
+    )
+    """
+    Arrival time of the trip.
+    """
 
     shift_start_airport_building: NoneOrNanString[e.SanBuildings] = Field(
         ..., description = "Name of building where employee starts their shift"
@@ -2330,6 +2330,20 @@ class DepartingAirPassenger(AirPassenger):
     Time of flight departure.
     """
 
+    trip_start_time: NoneOrNan[e.DepartTime] = Field(
+        ..., description="Start time of the trip"
+    )
+    """
+    Start time of the trip.
+    """
+
+    trip_arrival_time: NoneOrNan[e.DepartTime] = Field(
+        ..., description="Arrival time of the trip"
+    )
+    """
+    Arrival time of the trip.
+    """
+    
 class Resident(Respondent):
     """
     Data Model for a Air Passenger who is a resident of the San Deigo Region. It includes attributes specific to a Resident.

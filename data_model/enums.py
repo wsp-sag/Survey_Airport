@@ -1288,7 +1288,7 @@ class SPLikelihood(IntEnum):
     LIKELY = 4
     VERY_LIKELY = 5
 
-class SPDropoffType(Enum):
+class SPDropoffType(IntEnum):
     """
     Represents the type of person who dropped off the respondent at the airport
     """
