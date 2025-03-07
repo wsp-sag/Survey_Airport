@@ -171,7 +171,7 @@ def add_synthetic_records(df):
     # Iterate through each record in the dataframe
     for index, row in df.iterrows():
         # Create a copy of the current row for the synthetic record
-        if row['passenger_type'] == e.PassengerType.DEPARTING and row['is_completed'] == True:
+        if row['passenger_type'] == e.PassengerType.DEPARTING and row['submit'] == True:
             synthetic_record = row.copy()
 
             # Flip inbound/outbound
