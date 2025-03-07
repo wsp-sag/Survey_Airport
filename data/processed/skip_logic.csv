@@ -53,3 +53,9 @@ ArrivingPassengerVisitor,,,critical,nights_visited,,Non-Critical
 DepartingPassengerResident,,,critical,nights_away,,Non-Critical
 DepartingPassengerVisitor,,,value,resident_visitor,1,Critical
 ArrivingPassengerVisitor,,,value,resident_visitor,1,Critical
+ArrivingPassengerVisitor,,,critical,home_location_latitude,,Non-Critical
+DepartingPassengerResident,,,critical,home_location_latitude,,Non-Critical
+Employee,,,critical,home_location_latitude,,Non-Critical
+ArrivingPassengerVisitor,,,critical,home_location_longitude,,Non-Critical
+DepartingPassengerResident,,,critical,home_location_longitude,,Non-Critical
+Employee,,,critical,home_location_longitude,,Non-Critical
