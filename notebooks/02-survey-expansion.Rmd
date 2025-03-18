@@ -29,8 +29,8 @@ processed_dir <- "../data/processed/"
 interim_dir <- "../data/interim/"
 output_dir <- "../data/interim/"
 
-#config_file <- paste0(interim_dir, "expansion_config_departing_only.yaml")
-config_file <- paste0(interim_dir, "expansion_config_departing_and_arriving.yaml")
+config_file <- paste0(interim_dir, "expansion_config_departing_only.yaml")
+#config_file <- paste0(interim_dir, "expansion_config_departing_and_arriving.yaml")
 
 script_config <- yaml.load_file(config_file)
 
@@ -67,6 +67,7 @@ survey_df <- read_csv(survey_file, col_types = cols(.default = col_character(),
                                                     inbound_or_outbound = col_number(),
                                                     party_size_flight = col_number(),
                                                     airport_terminal = col_number(),
+                                                    flight_departure_time = col_number(),
                                                     weight = col_number()))
 ```
 

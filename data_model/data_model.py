@@ -1664,7 +1664,6 @@ class AirPassenger(Respondent):
     True if respondent lives outside San Diego Region and is going home by ground transportation
     """
     
-
     passenger_segment: NoneOrNan[e.PassengerSegment] = Field(
         ..., description="Segment of the air passenger: (Resident/Visitor and Arriving/Departing)"
     )
