@@ -29,8 +29,11 @@ processed_dir <- "../data/processed/"
 interim_dir <- "../data/interim/"
 output_dir <- "../data/interim/"
 
-config_file <- paste0(interim_dir, "expansion_config_departing_only.yaml")
+config_file <- paste0(interim_dir, "expansion_config_departing_non_sas_only.yaml")
+
+#config_file <- paste0(interim_dir, "expansion_config_departing_only.yaml")
 #config_file <- paste0(interim_dir, "expansion_config_departing_and_arriving.yaml")
+
 
 script_config <- yaml.load_file(config_file)
 
@@ -53,6 +56,7 @@ max_iteration <- script_config$parameters$max_iteration
 scaling_factor_low <- script_config$parameters$scaling_factor_low
 scaling_factor_high <- script_config$parameters$scaling_factor_high
 departing_only <- script_config$parameters$departing_only
+non_sas_only <- script_config$parameters$non_sas_only
 
 SURVEY_ID <- "unique_id"
 ```
@@ -61,7 +65,7 @@ SURVEY_ID <- "unique_id"
 ```{r data-reads}
 controls_df <- read_csv(controls_file, col_types = cols(.default = col_number(), airport_terminal = col_character()))
 config_df <- read_csv(config_file, col_types = cols(.default = col_character(), priority = col_number(), use = col_integer()))
-survey_df <- read_csv(survey_file, col_types = cols(.default = col_character(),  
+survey_df <- read_csv(survey_file, col_types = cols(.default = col_character(),
                                                     main_mode = col_number(),
                                                     marketsegment = col_number(),
                                                     inbound_or_outbound = col_number(),
@@ -179,6 +183,7 @@ working_config_df <- config_df %>%
 
 working_survey_df <- survey_df %>%
   filter(is_completed == "True") %>%
+  filter(initial_etc_check == "True") %>%
   mutate(count = 1) %>%
   mutate_all(~replace(., is.na(.), 0)) %>%
   mutate(party_size_flight = party_size_flight + 1) %>% 
@@ -187,6 +192,12 @@ working_survey_df <- survey_df %>%
 if (departing_only) {
   working_survey_df <- working_survey_df %>%
     filter(inbound_or_outbound == 1L)
+}
+
+
+if (non_sas_only) {
+  working_survey_df <- working_survey_df %>%
+  filter(is_self_administered == "False")
 }
 
 survey_colnames = as.list(colnames(working_survey_df))

@@ -15,3 +15,4 @@ parameters:
   scaling_factor_low : 100
   scaling_factor_high : 100
   departing_only: FALSE
+  non_sas_only: FALSE

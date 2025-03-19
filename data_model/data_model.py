@@ -800,6 +800,13 @@ class Respondent(PydanticModel):
     True if the record is to be used for submittal
     """
 
+    weight: float = Field(
+        ..., description = 'Expansion Factor of the observation'
+    )
+    """
+    Expansion Factor of the observation
+    """
+    
     interview_location: NoneOrNan[e.InterviewLocation] = Field(
         ..., description = "Location where respondent was intercepted")
     """

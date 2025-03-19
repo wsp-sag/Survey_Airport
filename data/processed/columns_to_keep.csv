@@ -276,6 +276,8 @@ resident_visitor_followup_label,delete
 resident_visitor_general,delete
 resident_visitor_general_label,delete
 resident_visitor_label,keep
+resident_visitor_purpose,keep
+resident_visitor_purpose_label,keep
 reverse_commute_mode,delete
 reverse_commute_mode_grouped,reverse_commute_mode
 reverse_commute_mode_grouped_label,reverse_commute_mode_label
@@ -432,4 +434,6 @@ validation_num_errors_person,delete
 validation_num_errors_trip,delete
 validation_severity_person,delete
 validation_severity_trip,delete
-weight,keep
+weight_departing_and_arriving,keep
+weight_departing_only,keep
+weight_non_sas_departing_only,keep

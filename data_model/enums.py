@@ -55,6 +55,7 @@ class PassengerSegment(IntEnum):
     RESIDENT_DEPARTING = 2
     VISITOR_ARRIVING = 3
     VISITOR_DEPARTING = 4
+    
 
 class ResidentVisitorPurpose(IntEnum):
     """
