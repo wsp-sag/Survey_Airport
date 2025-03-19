@@ -397,7 +397,7 @@ state_of_residence,keep
 state_of_residence_label,keep
 stay_informed,keep
 stay_informed_label,keep
-submit,delete
+initial_etc_check,delete
 survey_language,keep
 survey_language_label,keep
 survey_language_other,keep

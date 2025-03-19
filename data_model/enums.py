@@ -56,6 +56,15 @@ class PassengerSegment(IntEnum):
     VISITOR_ARRIVING = 3
     VISITOR_DEPARTING = 4
 
+class ResidentVisitorPurpose(IntEnum):
+    """
+    Integer Mapping for resident/visitor and flight purpose segmentation
+    """
+    RESIDENT_BUSINESS = 1
+    RESIDENT_NON_BUSINESS = 2
+    VISITOR_BUSINESS = 3
+    VISITOR_NON_BUSINESS = 4
+
 
 class ResidentVisitorGeneral(IntEnum):
     """

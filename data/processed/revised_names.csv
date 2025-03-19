@@ -2,7 +2,7 @@ ETC_name,WSP_name
 ID,respondentid
 DATE_COMPLETED,date_completed
 TIME_COMPLETED,time_completed
-SUBMIT,submit
+SUBMIT,initial_etc_check
 LOCATION_Code_,interview_location
 LOCATION,interview_location_label
 LOCATION_Other_,interview_location_other

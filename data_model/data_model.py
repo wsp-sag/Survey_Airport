@@ -792,8 +792,8 @@ class Respondent(PydanticModel):
     """
 
 
-    submit: NoneOrNanString[bool] = Field(
-        ..., description = "True if the record is to be used for submittal"
+    initial_etc_check: NoneOrNanString[bool] = Field(
+        ..., description = "True if the record passed ETC's initial check"
     )
 
     """
@@ -1238,13 +1238,6 @@ class Respondent(PydanticModel):
     trip: Trip = Field(..., description="Details of the trip taken by the respondent")
     """
     Details of the trip taken by the respondent.
-    """
-
-    weight: float = Field(
-        ..., description = 'Expansion Factor of the observation'
-    )
-    """
-    Expansion Factor of the observation
     """
 
     @model_validator(mode="after")
@@ -1793,6 +1786,33 @@ class AirPassenger(Respondent):
     """
     Other (not listed) purpose of the respondent's flight
     """
+
+    resident_visitor_purpose: NoneOrNanString[e.ResidentVisitorPurpose] = Field(
+        ..., description = "Determines the resident/visitor classification based on the home airport status and flight purpose"
+    )
+    """
+    Determines the resident/visitor classification based on the home airport status and flight purpose
+    """
+
+
+    # @computed_field(
+    #     return_type = e.ResidentVisitorPurpose,
+    #     description = "Determines the resident/visitor classification based on the home airport status and flight purpose",
+    # )
+    # @property
+    # def resident_visitor_purpose(cls):
+    #     """
+    #     Determines the resident/visitor classification based on the home airport status and flight purpose.
+    #     """
+    #     if cls.is_sdia_home_airport == True and cls.flight_purpose in {e.FlightPurpose.BUSINESS_WORK, e.FlightPurpose.COMBINATION_BUSINESS_LEISURE}:
+    #         return e.ResidentVisitorPurpose.RESIDENT_BUSINESS
+    #     elif cls.is_sdia_home_airport == False:
+    #         return e.ResidentVisitorPurpose.RESIDENT_NON_BUSINESS
+    #     elif cls.flight_purpose in {e.FlightPurpose.BUSINESS_WORK, e.FlightPurpose.COMBINATION_BUSINESS_LEISURE}:
+    #         return e.ResidentVisitorPurpose.VISITOR_BUSINESS
+    #     else:
+    #         return e.ResidentVisitorPurpose.VISITOR_NON_BUSINESS
+
 
     checked_bags: NoneOrNan[e.CheckedBags] = Field(
         ..., description = "Number of checked bags"
