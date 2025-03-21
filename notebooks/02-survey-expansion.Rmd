@@ -182,8 +182,7 @@ working_config_df <- config_df %>%
   filter(use == 1L)
 
 working_survey_df <- survey_df %>%
-  filter(is_completed == "True") %>%
-  filter(initial_etc_check == "True") %>%
+  filter(is_valid_record == "True") %>%
   mutate(count = 1) %>%
   mutate_all(~replace(., is.na(.), 0)) %>%
   mutate(party_size_flight = party_size_flight + 1) %>% 
