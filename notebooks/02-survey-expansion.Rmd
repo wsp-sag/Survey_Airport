@@ -22,6 +22,7 @@ print(getwd())
 ```
 
 # Remote I/O
+The user can change the expansion config in this block, see `config_file`. The other input files are specified in the `config_file`. 
 ```{r remote-io}
 setwd(getwd())
 
@@ -51,6 +52,11 @@ weights_only_file <- script_config$output$weights_only_file
 ```
 
 # Parameters
+The parameters for the expansion:
+1. `max_iteration` - The number of iterations to fit the data (50 should be more than enough)
+2. `scaling_factor_low` - The minimum allowable weight is the mean expected weight (see `avgweight` in the `preparation` block below) divided by this factor
+3. `scaling_factor_high` - The maximum allowable weight is the mean expected weight multiplied by this factor
+4. `departing_only` - Set to `TRUE` for the departing only expansion and `FALSE` for the departing plus arriving expansion
 ```{r parameters}
 max_iteration <- script_config$parameters$max_iteration
 scaling_factor_low <- script_config$parameters$scaling_factor_low
@@ -62,6 +68,7 @@ SURVEY_ID <- "unique_id"
 ```
 
 # Reads
+Read the data from disk, setting the data types for the key variables. 
 ```{r data-reads}
 controls_df <- read_csv(controls_file, col_types = cols(.default = col_number(), airport_terminal = col_character()))
 config_df <- read_csv(config_file, col_types = cols(.default = col_character(), priority = col_number(), use = col_integer()))
@@ -78,6 +85,8 @@ survey_df <- read_csv(survey_file, col_types = cols(.default = col_character(),
 # Methods
 
 ## Create Incidence Table
+For each row in the survey table, this method determines which of the controls are incident (i.e., relevant)
+to the row. At least one control should be relevant to each control. 
 ```{r method-create-incidence-table}
 create_incidence_table <- function(config_df, survey_df){
 
@@ -98,6 +107,7 @@ create_incidence_table <- function(config_df, survey_df){
 ```
 
 ## Add Relaxation Factor to Controls
+Initializes the relaxation controls used in the fitting algorithms to 1.0. 
 ```{r method-add-relaxation-factor}
 add_rfac <- function(config_df, controls_df){
 
@@ -110,6 +120,8 @@ add_rfac <- function(config_df, controls_df){
 ```
 
 ## Newton-Raphson Expansion
+Uses the Netwon-Raphson method to fit the controls. For each control, it iteratively adjusts the weight to match the control.
+The importance of each weight is use to dampen the correction. 
 ```{r method-expansion}
 newton_raphson_expansion <- function(control_field, control_priority, s_df, c_df, index_key, control_key){
   
@@ -142,6 +154,7 @@ newton_raphson_expansion <- function(control_field, control_priority, s_df, c_df
 ```
 
 ## Expansion Statistics
+Helper method to print out statistics for each round of expansion. 
 ```{r method-expansion-statistics}
 run_stats <- function(s_df, c_df, control_field, iter) {
   
@@ -174,6 +187,7 @@ run_stats <- function(s_df, c_df, control_field, iter) {
 
 
 # Preparation
+Prepare the data files for the expansion, setting the incidence values for each row and initializing the relaxation factors.
 ```{r preparation}
 working_controls_df <- controls_df %>%
   mutate(across(everything(), ~replace_na(., 0)))
@@ -218,6 +232,8 @@ statout_df <- tibble()
 ```
 
 # Expansion
+Run the expansion, which calls the fsitting algorithm `max_iteration` times. There is no assessment of fit, it just runs through `max_iteration`. Statistics for
+each iteration are logged, so you can see how well the algorithm is doing. Runtime should be about 15 seconds on a laptop. 
 ```{r expansion}
 
 running_controls_df <- working_controls_df
@@ -257,6 +273,7 @@ for (iter in 1:max_iteration){
 
 
 # Resolution
+Prepare the results to be written to disk. 
 ```{r resolution}
 survey_out_df <- running_survey_df %>% 
   select(match(survey_colnames, names(.))) %>% 
