@@ -2,6 +2,7 @@ column,status
 unique_id,keep
 respondentid,keep
 is_completed,delete
+is_valid_record,delete
 date_completed,keep
 time_completed,keep
 is_pilot,keep
