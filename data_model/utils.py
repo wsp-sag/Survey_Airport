@@ -193,17 +193,17 @@ def add_synthetic_records(df):
             synthetic_record['previous_flight_origin'], synthetic_record['next_flight_destination'] = row['next_flight_destination'], row['previous_flight_origin']
 
             # Flipping the main and reverse modes:
-            if pd.notna(row['reverse_mode']):
+            if pd.notna(row['reverse_mode']) and row['reverse_mode']!=e.TravelMode.REFUSED_NO_ANSWER:
                 synthetic_record['main_mode'], synthetic_record['reverse_mode'] = row['reverse_mode'], row['main_mode']
-            elif pd.notna(row['reverse_mode_predicted']):
+            elif pd.notna(row['reverse_mode_predicted']) and row['reverse_mode_predicted']!=e.TravelMode.REFUSED_NO_ANSWER:
                 synthetic_record['main_mode'], synthetic_record['reverse_mode_predicted'] = row['reverse_mode_predicted'], row['main_mode']
 
                 
             synthetic_record['reverse_mode_combined'] = row['main_mode_grouped']
             #Similar for grouped modes
-            if pd.notna(row['reverse_mode_grouped']):
+            if pd.notna(row['reverse_mode_grouped']) and row['reverse_mode_grouped']!=e.TravelModeGrouped.REFUSED_NO_ANSWER:
                 synthetic_record['main_mode_grouped'], synthetic_record['reverse_mode_grouped'] = row['reverse_mode_grouped'], row['main_mode_grouped']
-            elif pd.notna(row['reverse_mode_predicted_grouped']):
+            elif pd.notna(row['reverse_mode_predicted_grouped']) and row['reverse_mode_predicted_grouped']!=e.TravelModeGrouped.REFUSED_NO_ANSWER:
                 synthetic_record['main_mode_grouped'], synthetic_record['reverse_mode_predicted_grouped'] = row['reverse_mode_predicted_grouped'], row['main_mode_grouped']
             
             #synthetic_record['main_mode_grouped'], synthetic_record['reverse_mode_combined'] = row['reverse_mode_combined'], row['main_mode_grouped']
