@@ -116,11 +116,11 @@ class PydanticModel(BaseModel):
     Base class for all Pydantic models, create in case future modifications are helpful
     """
 
-    valid_record: bool = Field(
-        default=True, description="Indicates if the record is valid")
-    """
-    Indicates if the record is valid
-    """
+    # valid_record: bool = Field(
+    #     default=True, description="Indicates if the record is valid")
+    # """
+    # Indicates if the record is valid
+    # """
 
     validation_error: str = Field(
         default="", description="Holds validation error messages")
@@ -151,7 +151,7 @@ class PydanticModel(BaseModel):
             value = values.get(field)
             if isinstance(value, datetime):
                 values[field] = value.strftime('%Y-%m-%d %H:%M:%S') #change to pass through the data model anyway
-                values['valid_record'] = False
+                #values['valid_record'] = False
                 values['validation_severity'] = "Low"
                 values['validation_error'] = f"{field} is datetime"
 
@@ -722,7 +722,7 @@ class Trip(PydanticModel):
         
         errors, severity_levels, num_errors = skip_logic_validator.validate("Trip", values.dict())
         # Update validation fields
-        values.valid_record = len(errors) == 0
+        #values.valid_record = len(errors) == 0
         values.validation_error = errors
         values.validation_severity = cls.determine_severity(severity_levels)
         values.validation_num_errors = num_errors
@@ -1265,7 +1265,7 @@ class Respondent(PydanticModel):
             or race_white
         ):
             #values.race_unknown = False
-            values.valid_record= False
+            #values.valid_record= False
             values.validation_error = "Prefer Not to disclose cannot be combined with any other race"
             values.validation_severity = "Low"
         return values
@@ -1620,7 +1620,7 @@ class Employee(Respondent):
         # Validate using SkipLogicValidator
         errors, severity_levels, num_errors = skip_logic_validator.validate("Employee", values.dict())
         # Update validation fields
-        values.valid_record = len(errors) == 0
+        #values.valid_record = len(errors) == 0
         values.validation_error = errors
         values.validation_severity = cls.determine_severity(severity_levels)
         values.validation_num_errors = num_errors
@@ -2477,7 +2477,7 @@ class DepartingPassengerResident(DepartingAirPassenger, Resident):
         # Validate using SkipLogicValidator
         errors, severity_levels, num_errors = skip_logic_validator.validate("DepartingpassengerResident", values.dict())
         # Update validation fields
-        values.valid_record = len(errors) == 0
+        #values.valid_record = len(errors) == 0
         values.validation_error = errors
         values.validation_severity = cls.determine_severity(severity_levels)
         values.validation_num_errors = num_errors
@@ -2719,7 +2719,7 @@ class DepartingPassengerVisitor(DepartingAirPassenger, Visitor):
         # Validate using SkipLogicValidator
         errors, severity_levels, num_errors = skip_logic_validator.validate("DepartingPassengerVisitor", values.dict())
         # Update validation fields
-        values.valid_record = len(errors) == 0
+        #values.valid_record = len(errors) == 0
         values.validation_error = errors
         values.validation_severity = cls.determine_severity(severity_levels)
         values.validation_num_errors = num_errors
@@ -2753,7 +2753,7 @@ class ArrivingPassengerResident(ArrivingAirPassenger, Resident):
         # Validate using SkipLogicValidator
         errors, severity_levels, num_errors = skip_logic_validator.validate("ArrivingPassengerResident", values.dict())
         # Update validation fields
-        values.valid_record = len(errors) == 0
+        #values.valid_record = len(errors) == 0
         values.validation_error = errors
         values.validation_severity = cls.determine_severity(severity_levels)
         values.validation_num_errors = num_errors
@@ -2812,7 +2812,7 @@ class ArrivingPassengerVisitor(ArrivingAirPassenger, Visitor):
         errors, severity_levels, num_errors = skip_logic_validator.validate("ArrivingPassengerVisitor", values.dict())
         
         # Update validation fields
-        values.valid_record = len(errors) == 0
+        #values.valid_record = len(errors) == 0
         values.validation_error = errors
         values.validation_severity = cls.determine_severity(severity_levels)
         values.validation_num_errors = num_errors
