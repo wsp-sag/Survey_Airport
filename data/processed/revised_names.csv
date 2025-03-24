@@ -401,8 +401,13 @@ DESTIN_ADDRESS [LONG],destination_longitude
 DESCRIBE_JOB_SPECIFY_Code,occupation_detail
 DESCRIBE_JOB_SPECIFY,occupation_detail_label
 not_a_question_2,delete
-id,respondentid
-Date started,date_completed
+respondentid,respondentid
+is_valid,sp_is_valid
+is_complete,delete
+shared_link,delete
+sys_StartTime,delete
+sys_EndTime,delete
+surveyzone,delete
 feature1_r1,sp_feature_short_wait
 feature2_r2,sp_feature_seats_transit_stop
 feature3_r3,sp_feature_luggage_rack
