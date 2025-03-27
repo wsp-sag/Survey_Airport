@@ -192,7 +192,7 @@ def add_synthetic_records(df) -> pd.DataFrame:
     # Iterate through each record in the dataframe
     for index, row in df.iterrows():
         # Create a copy of the current row for the synthetic record
-        if row['passenger_type'] == e.PassengerType.DEPARTING and row['is_completed'] == True:
+        if row['passenger_type'] == e.PassengerType.DEPARTING and row['initial_etc_check'] == True:
             synthetic_record = row.copy()
 
             # Flip inbound/outbound
@@ -214,13 +214,31 @@ def add_synthetic_records(df) -> pd.DataFrame:
             synthetic_record['previous_flight_origin'], synthetic_record['next_flight_destination'] = row['next_flight_destination'], row['previous_flight_origin']
 
             # Flipping the main and reverse modes:
-            if pd.notna(row['reverse_mode']):
+            if pd.notna(row['reverse_mode']) and row['reverse_mode']!=e.TravelMode.REFUSED_NO_ANSWER:
                 synthetic_record['main_mode'], synthetic_record['reverse_mode'] = row['reverse_mode'], row['main_mode']
-            elif pd.notna(row['reverse_mode_predicted']):
+            elif pd.notna(row['reverse_mode_predicted']) and row['reverse_mode_predicted']!=e.TravelMode.REFUSED_NO_ANSWER:
                 synthetic_record['main_mode'], synthetic_record['reverse_mode_predicted'] = row['reverse_mode_predicted'], row['main_mode']
 
+                
+            synthetic_record['reverse_mode_combined'] = row['main_mode_grouped']
+            #Similar for grouped modes
+            if pd.notna(row['reverse_mode_grouped']) and row['reverse_mode_grouped']!=e.TravelModeGrouped.REFUSED_NO_ANSWER:
+                synthetic_record['main_mode_grouped'], synthetic_record['reverse_mode_grouped'] = row['reverse_mode_grouped'], row['main_mode_grouped']
+            elif pd.notna(row['reverse_mode_predicted_grouped']) and row['reverse_mode_predicted_grouped']!=e.TravelModeGrouped.REFUSED_NO_ANSWER:
+                synthetic_record['main_mode_grouped'], synthetic_record['reverse_mode_predicted_grouped'] = row['reverse_mode_predicted_grouped'], row['main_mode_grouped']
+            
+            #synthetic_record['main_mode_grouped'], synthetic_record['reverse_mode_combined'] = row['reverse_mode_combined'], row['main_mode_grouped']
+            # print(row['main_mode_grouped'], row['reverse_mode_combined'])
+            
+
             # Access and Egress Modes:
-            synthetic_record['access_mode'], synthetic_record['egress_mode'] = row['egress_mode'], row['access_mode']
+            # synthetic_record['access_mode'], synthetic_record['egress_mode'] = row['egress_mode'], row['access_mode']
+            # synthetic_record['access_mode_grouped'], synthetic_record['egress_mode_grouped'] = row['egress_mode_grouped'], row['access_mode_grouped']
+            # Set access and egress modes to None
+            synthetic_record["access_mode"] = None
+            synthetic_record["egress_mode"] = None
+            synthetic_record["access_mode_grouped"] = None
+            synthetic_record["egress_mode_grouped"] = None
 
             # Activity Type
             synthetic_record['origin_activity_type'], synthetic_record['destination_activity_type'] = row['destination_activity_type'], row['origin_activity_type']

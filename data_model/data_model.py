@@ -2,7 +2,7 @@
 Data Model for the SDIA Survey
 """
 
-from datetime import datetime
+from datetime import datetime, time
 from math import isnan
 from typing import Annotated, Any, ClassVar, Literal, Optional, TypeVar, Union, List
 
@@ -116,11 +116,11 @@ class PydanticModel(BaseModel):
     Base class for all Pydantic models, create in case future modifications are helpful
     """
 
-    valid_record: bool = Field(
-        default=True, description="Indicates if the record is valid")
-    """
-    Indicates if the record is valid
-    """
+    # valid_record: bool = Field(
+    #     default=True, description="Indicates if the record is valid")
+    # """
+    # Indicates if the record is valid
+    # """
 
     validation_error: str = Field(
         default="", description="Holds validation error messages")
@@ -143,7 +143,7 @@ class PydanticModel(BaseModel):
     """
 
     @model_validator(mode="before")
-    def convert_datetime(cls, values):
+    def check_validation_of_numeric_value(cls, values):
         # List of fields to validate
         fields_to_check = ['taxi_fhv_fare', 'taxi_fhv_wait', 'parking_cost']
         
@@ -151,7 +151,7 @@ class PydanticModel(BaseModel):
             value = values.get(field)
             if isinstance(value, datetime):
                 values[field] = value.strftime('%Y-%m-%d %H:%M:%S') #change to pass through the data model anyway
-                values['valid_record'] = False
+                #values['valid_record'] = False
                 values['validation_severity'] = "Low"
                 values['validation_error'] = f"{field} is datetime"
 
@@ -359,26 +359,18 @@ class Trip(PydanticModel):
     """
     Name of the other Main Mode to/from airport.
     """
+    
+    main_mode_grouped: NoneOrNanString[e.TravelModeGrouped] = Field(
+        ..., description = "Grouped Main Mode to/from airport")
+    """
+    Grouped Main Mode to/from airport
+    """
 
     shared_van_other: NoneOrNanString[str] = Field(
         ..., description = "Name of the other shared van service used by respondent"
     )
     """
     Name of the other shared van service used by respondent.
-    """
-
-    trip_start_time: NoneOrNan[e.DepartTime] = Field(
-        ..., description="Start time of the trip"
-    )
-    """
-    Start time of the trip.
-    """
-
-    trip_arrival_time: NoneOrNan[e.DepartTime] = Field(
-        ..., description="Arrival time of the trip"
-    )
-    """
-    Arrival time of the trip.
     """
 
     number_transit_vehicles_to_airport: NoneOrNanString[e.NumTransfers] = Field(
@@ -444,6 +436,20 @@ class Trip(PydanticModel):
     Other Fourth Transit Route to the airport
     """
 
+    transit_routes_list: NoneOrNanString[str] = Field(
+        ..., description = "List of transit routes used by the respondent (comma separated)"
+    )
+    """
+    List of transit routes used by the respondent (comma separated)
+    """
+
+    num_transit_transfers: NoneOrNanString[int] = Field(
+        ..., description = "Number of transit transfers made by the respondent"
+    )
+    """
+    Number of transit transfers made by the respondent.
+    """
+    
     access_mode: NoneOrNanString[e.TravelMode] = Field(
         ..., description = "Access mode to first transit vehicle for inbound trip to the airport"
     )
@@ -456,6 +462,13 @@ class Trip(PydanticModel):
     )
     """
     Other Access mode to first transit vehicle for inbound trip to the airport.
+    """
+
+    access_mode_grouped: NoneOrNanString[e.TravelModeGrouped] = Field(
+        ..., description = "Grouped Access mode to first transit vehicle for inbound trip to the airport"
+    )
+    """
+    Grouped Access mode to first transit vehicle for inbound trip to the airport.
     """
 
     taxi_fhv_fare: NoneOrNanString[Union[str,float]] = Field(
@@ -576,6 +589,7 @@ class Trip(PydanticModel):
     """
     Whether or not ground access cost will be reimbursed by employer or other non-household member.
     """
+
     number_transit_vehicles_from_airport: NoneOrNanString[e.NumTransfers] = Field(
         ..., description = "Number of transit transfers for the inbound trip"
     )
@@ -653,6 +667,13 @@ class Trip(PydanticModel):
     Other Egress mode from last transit vehicle for outbound trip.
     """
 
+    egress_mode_grouped: NoneOrNanString[e.TravelModeGrouped] = Field(
+        ..., description = "Grouped Egress mode from last transit vehicle for outbound trip"
+    )
+    """
+    Grouped Egress mode from last transit vehicle for outbound trip.
+    """
+
     transit_boarding_stop_name: NoneOrNanString[str] = Field(
         ..., description = "Name of the stop where respondent boarded the main transit mode"
     )
@@ -701,7 +722,7 @@ class Trip(PydanticModel):
         
         errors, severity_levels, num_errors = skip_logic_validator.validate("Trip", values.dict())
         # Update validation fields
-        values.valid_record = len(errors) == 0
+        #values.valid_record = len(errors) == 0
         values.validation_error = errors
         values.validation_severity = cls.determine_severity(severity_levels)
         values.validation_num_errors = num_errors
@@ -757,20 +778,35 @@ class Respondent(PydanticModel):
 
 
     date_completed: NoneOrNanString[datetime] = Field(
-        ..., description = "Date and time when respondent completed the survey"
+        ..., description = "Date when respondent completed the survey"
     )
     """
-    Date and time when respondent completed the survey
+    Date when respondent completed the survey
     """
 
-    submit: NoneOrNanString[bool] = Field(
-        ..., description = "True if the record is to be used for submittal"
+    time_completed: NoneOrNanString[time] = Field(
+        ..., description = "Time when respondent completed the survey"
+    )
+    """
+    Time when respondent completed the survey
+    """
+
+
+    initial_etc_check: NoneOrNanString[bool] = Field(
+        ..., description = "True if the record passed ETC's initial check"
     )
 
     """
     True if the record is to be used for submittal
     """
 
+    weight: float = Field(
+        ..., description = 'Expansion Factor of the observation'
+    )
+    """
+    Expansion Factor of the observation
+    """
+    
     interview_location: NoneOrNan[e.InterviewLocation] = Field(
         ..., description = "Location where respondent was intercepted")
     """
@@ -798,6 +834,62 @@ class Respondent(PydanticModel):
     Whether the respondent is of a qualified age to participate in the survey.
     """
 
+    resident_visitor: NoneOrNan[e.ResidentVisitor] = Field(
+        ...,
+        description="Where the respondent resides in the airport service area most of the year",
+    )
+    """
+    Where the respondent resides in the airport service area most of the year.
+    """
+
+    home_location_city: NoneOrNanString[str] =  Field(
+        ..., description = "City of the home location of the respondent"
+    )
+    """
+    City of the home location of the respondent
+    """
+
+    home_location_state: NoneOrNanString[str] =  Field(
+        ..., description = "State of the home location of the respondent"
+    )
+    """
+    State of the home location of the respondent
+    """
+
+    home_location_zip: NoneOrNanString[Union[str,int]] =  Field(
+        ..., description = "ZIP of the home location of the respondent"
+    )
+    """
+    ZIP of the home location of the respondent
+    """
+
+    home_location_latitude: NoneOrNanString[Latitude] =  Field(
+        ..., description = "Latitude of the home location of the respondent"
+    )
+    """
+    Latitude of the home location of the respondent
+    """
+
+    home_location_longitude: NoneOrNanString[Longitude]=   Field(
+        ..., description = "Longitude of the home location of the respondent"
+    )
+    """
+    Longitude of the home location of the respondent
+    """
+
+    home_location_municipal_zone: NoneOrNanString[str] = Field(
+        ..., description="Municipal zone of home address of the respondent"
+    )
+    """
+    Municipal zone of home address of the Resident
+    """
+
+    home_location_pmsa: NoneOrNanString[e.PMSA] = Field(
+        ..., description="Pseudo MSA of home address of the Resident"
+    )
+    """
+    Pseudo MSA of home address of the Resident
+    """
  #Add new here
     # home_location_address: NoneOrNanString[str] =  Field(
     #     ..., description = "Street Address of the home location of the respondent"
@@ -885,6 +977,14 @@ class Respondent(PydanticModel):
     If the respondent enters a race/ethnicity not listed above, this field will be populated. 
     """
 
+    race_list: NoneOrNanString[str] = Field(
+        ...,
+        description="List of Races the respondent identifies as (comma separated)",
+    )
+    """
+    List of Races the respondent identifies as (comma separated)
+    """
+
     number_persons_in_household: NoneOrNan[e.HouseholdSize] = Field(
         ..., description="Number of persons in the respondent's household"
     )
@@ -949,30 +1049,202 @@ class Respondent(PydanticModel):
     """
     Other (not listed) language of the survey
     """
-    # other_home_language: NoneOrNanString[bool] = Field(
-    #     ..., description = "Does the respondent speak a language other than English at home?",
-    # )
-    # """
-    # Does the respondent speak a language other than English at home?
-    # """
+    ##Add SP Fields:
 
-    # english_proficiency: NoneOrNan[e.EnglishProficiency] = Field(
-    #     ..., description="Respondent's level of English proficiency"
-    # )
-    # """
-    # Respondent's level of English proficiency.
-    # """
+    sp_feature_short_wait: NoneOrNan[e.SPImportance] = Field(
+        ..., description="Level of importance assigned to having a short wait time (less than 10 minutes) for transit service."
+    )
+    """Level of importance assigned to having a short wait time (less than 10 minutes) for transit service."""
+
+    sp_feature_seats_transit_stop: NoneOrNan[e.SPImportance] = Field(
+        ..., description="Level of importance assigned to the availability of seats at the transit stop."
+    )
+    """Level of importance assigned to the availability of seats at the transit stop."""
+
+    sp_feature_luggage_rack: NoneOrNan[e.SPImportance] = Field(
+        ..., description="Level of importance assigned to having a luggage rack option on the transit service."
+    )
+    """Level of importance assigned to having a luggage rack option on the transit service."""
+
+    sp_feature_seats_transit: NoneOrNan[e.SPImportance] = Field(
+        ..., description="Level of importance assigned to having available seating on the transit vehicle."
+    )
+    """Level of importance assigned to having available seating on the transit vehicle."""
+
+    sp_feature_no_delay: NoneOrNan[e.SPImportance] = Field(
+        ..., description="Level of importance assigned to ensuring the transit service is not delayed by car traffic."
+    )
+    """Level of importance assigned to ensuring the transit service is not delayed by car traffic."""
+
+    sp_feature_early_morning: NoneOrNan[e.SPImportance] = Field(
+        ..., description="Level of importance assigned to the service starting early in the morning (before 5 AM)."
+    )
+    """Level of importance assigned to the service starting early in the morning (before 5 AM)."""
+
+    sp_feature_late_night: NoneOrNan[e.SPImportance] = Field(
+        ..., description="Level of importance assigned to the service operating past 10 PM."
+    )
+    """Level of importance assigned to the service operating past 10 PM."""
+
+    sp_feature_weekend_frequency: NoneOrNan[e.SPImportance] = Field(
+        ..., description="Level of importance assigned to frequent transit service availability on weekends."
+    )
+    """Level of importance assigned to frequent transit service availability on weekends."""
+
+    sp_access_walk_time: NoneOrNan[e.SPWillingToWalkTime] = Field(
+        ..., description="Maximum walking time (in minutes) the respondent is willing to take to access the transit station."
+    )
+    """Maximum walking time (in minutes) the respondent is willing to take to access the transit station."""
+
+    sp_number_of_transfers: NoneOrNan[e.SPNumTransfers] = Field(
+        ..., description="Number of transfers the respondent is willing to make to reach the airport."
+    )
+    """Number of transfers the respondent is willing to make to reach the airport."""
+
+    sp_dropoff_escort: NoneOrNan[e.SPDropoffType] = Field(
+        ..., description="Type of Person who dropped the respondent off at the airport."
+    )
+    """Type of Person who dropped the respondent off at the airport."""
+
+    sp_dropoff_choice_no_transit_access: NoneOrNan[e.SPLikelihood] = Field(
+        ..., description="Likelihood of being dropped off at the new transit station in areas without existing transit access."
+    )
+    """Likelihood of being dropped off at the new transit station in areas without existing transit access."""
+
+    sp_dropoff_choice_transit_access: NoneOrNan[e.SPLikelihood] = Field(
+        ..., description="Likelihood of being dropped off at a transit stop in areas with existing transit access."
+    )
+    """Likelihood of being dropped off at a transit stop in areas with existing transit access."""
+
+    sp_taxi_choice_dropoff_station: NoneOrNan[e.SPLikelihood] = Field(
+        ..., description="Likelihood of opting for drop-off at the new transit station when using a taxi."
+    )
+    """Likelihood of opting for drop-off at the new transit station when using a taxi."""
+
+    sp_rental_choice_no_transit: NoneOrNan[e.SPLikelihood] = Field(
+        ..., description="Likelihood of still renting a car if the new transit service were available."
+    )
+    """Likelihood of still renting a car if the new transit service were available."""
+
+    sp_connection_to_santafe_depot: NoneOrNan[e.SPLikelihood] = Field(
+        ..., description="Likelihood of using the new transit connection to the Santa Fe Depot train station."
+    )
+    """Likelihood of using the new transit connection to the Santa Fe Depot train station."""
+
+    sp_connection_to_convention_center: NoneOrNan[e.SPLikelihood] = Field(
+        ..., description="Likelihood of using the new transit connection to the San Diego Convention Center."
+    )
+    """Likelihood of using the new transit connection to the San Diego Convention Center."""
+
+    sp_connection_to_old_town_center: NoneOrNan[e.SPLikelihood] = Field(
+        ..., description="Likelihood of using the new transit connection to the Old Town Transit Center."
+    )
+    """Likelihood of using the new transit connection to the Old Town Transit Center."""
+
+     # Missing fields related to other airports
+    sp_other_airport_ease_of_planning: NoneOrNanString[bool] = Field(
+        ..., description="True if the respondent found trip planning easy at another airport's transit service."
+    )
+    """True if the respondent found trip planning easy at another airport's transit service."""
+
+    sp_other_airport_walking_distance: NoneOrNanString[bool] = Field(
+        ..., description="True if the transit station at another airport was within a comfortable walking distance."
+    )
+    """True if the transit station at another airport was within a comfortable walking distance."""
+
+    sp_other_airport_short_travel_time: NoneOrNanString[bool] = Field(
+        ..., description="True if the respondent experienced a short total travel time at another airport."
+    )
+    """True if the respondent experienced a short total travel time at another airport."""
+
+    sp_other_airport_no_delays: NoneOrNanString[bool] = Field(
+        ..., description="True if the respondent experienced no delays using another airport's transit service."
+    )
+    """True if the respondent experienced no delays using another airport's transit service."""
+
+    sp_other_airport_cost: NoneOrNanString[bool] = Field(
+        ..., description="True if the cost of using transit at another airport was a positive factor."
+    )
+    """True if the cost of using transit at another airport was a positive factor."""
+
+    sp_other_airport_frequency_of_service: NoneOrNanString[bool] = Field(   
+        ..., description="True if the frequency of service at another airport was a positive factor."
+    )
+    """
+    True if the frequency of service at another airport was a positive factor.
+    """
+
+    sp_other_airport_ease_of_boarding: NoneOrNanString[bool] = Field(
+        ..., description="True if the respondent found boarding easy at another airport's transit service."
+    )
+    """True if the respondent found boarding easy at another airport's transit service."""
+
+    sp_other_airport_comfort: NoneOrNanString[bool] = Field(
+        ..., description="True if the respondent found the transit service at another airport comfortable."
+    )
+    """True if the respondent found the transit service at another airport comfortable."""
+
+    sp_other_airport_safety: NoneOrNanString[bool] = Field(
+        ..., description="True if the respondent felt safe using another airport's transit service."
+    )
+    """True if the respondent felt safe using another airport's transit service."""
+
+    sp_other_airport_luggage_rack: NoneOrNanString[bool] = Field(
+        ..., description="True if a luggage rack was available at another airport's transit service."
+    )
+    """True if a luggage rack was available at another airport's transit service."""
+
+    sp_other_airport_enough_capacity: NoneOrNanString[bool] = Field(
+        ..., description="True if there was sufficient passenger capacity at another airport."
+    )
+    """True if there was sufficient passenger capacity at another airport."""
+
+    sp_other_airport_no_transfers: NoneOrNanString[bool] = Field(
+        ..., description="True if no transfers were required at another airport's transit service."
+    )
+    """True if no transfers were required at another airport's transit service."""
+
+    sp_other_airport_longer_operating_hours: NoneOrNanString[bool] = Field(
+        ..., description="True if another airport's transit service had longer operating hours."
+    )
+    """True if another airport's transit service had longer operating hours."""
+
+    sp_other_airport_enough_room_to_stand: NoneOrNanString[bool] = Field(
+        ..., description="True if there was enough standing room at another airport's transit service."
+    )
+    """True if there was enough standing room at another airport's transit service."""
+
+    sp_other_airport_enough_seats: NoneOrNanString[bool] = Field(
+        ..., description="True if there were enough available seats at another airport's transit service."
+    )
+    """True if there were enough available seats at another airport's transit service."""
+
+    sp_other_airport_other_specify: NoneOrNanString[bool] = Field(
+        ..., description="True if the respondent liked something else about another airport’s transit service."
+    )
+    """True if the respondent liked something else about another airport’s transit service."""
+
+    sp_other_airport_did_not_like: NoneOrNanString[bool] = Field(
+        ..., description="True if the respondent did not like the transit service at another airport."
+    )
+    """True if the respondent did not like the transit service at another airport."""
+
+
+    sp_other_airport_other: NoneOrNanString[str] = Field(
+        ..., description="Additional comments provided by the respondent regarding another airport's transit service."
+    )
+    """Additional comments provided by the respondent regarding another airport's transit service."""
+
+    sp_other_airport_list: NoneOrNanString[str] = Field(
+        ..., description="List of factors at other airports due to which the respondent used transit service."
+    )
+    """
+    List of factors at other airports due to which the respondent used transit service.
+    """
 
     trip: Trip = Field(..., description="Details of the trip taken by the respondent")
     """
     Details of the trip taken by the respondent.
-    """
-
-    weight: float = Field(
-        ..., description = 'Expansion Factor of the observation'
-    )
-    """
-    Expansion Factor of the observation
     """
 
     @model_validator(mode="after")
@@ -993,7 +1265,7 @@ class Respondent(PydanticModel):
             or race_white
         ):
             #values.race_unknown = False
-            values.valid_record= False
+            #values.valid_record= False
             values.validation_error = "Prefer Not to disclose cannot be combined with any other race"
             values.validation_severity = "Low"
         return values
@@ -1010,6 +1282,20 @@ class Employee(Respondent):
     # """
     # Longitude and Latitude of building where the employee starts their shift.
     # """
+    
+    trip_start_time: NoneOrNan[e.DepartTime] = Field(
+        ..., description="Start time of the trip"
+    )
+    """
+    Start time of the trip.
+    """
+
+    trip_arrival_time: NoneOrNan[e.DepartTime] = Field(
+        ..., description="Arrival time of the trip"
+    )
+    """
+    Arrival time of the trip.
+    """
 
     shift_start_airport_building: NoneOrNanString[e.SanBuildings] = Field(
         ..., description = "Name of building where employee starts their shift"
@@ -1053,6 +1339,13 @@ class Employee(Respondent):
     Occupation (other, not listed) of the employee
     """
 
+    occupation_detail: NoneOrNan[e.OccupationDetail] = Field(
+        ..., description = "Occupation Details for the airport employee"
+    )
+    """
+    Occupation Details for the airport employee
+    """
+
     number_hours_worked: NoneOrNan[e.HoursWorked] = Field(
         ..., description = "Number of hours respondent worked in the past 7 days"
     )
@@ -1094,6 +1387,13 @@ class Employee(Respondent):
     )
     """
     Reverse commute mode for the employee (other, not listed)
+    """
+
+    reverse_commute_mode_grouped: NoneOrNanString[e.TravelModeGrouped] = Field(
+        ..., description = "Grouped reverse commute mode for the employee"
+    )
+    """
+    Grouped reverse commute mode for the employee
     """
 
     same_commute_mode: NoneOrNanString[e.YesNoType] = Field(
@@ -1250,6 +1550,13 @@ class Employee(Respondent):
     Other mode used by the employee to commute to the airport in the past 30 days
     """
 
+    alt_commute_mode_list: NoneOrNanString[str] = Field(
+        ..., description = "List of modes used by the employee to commute to the airport in the past 30 days.")
+    """
+    List of modes used by the employee to commute to the airport in the past 30 days
+    """
+
+
     commute_mode_decision: NoneOrNanString[e.ModeDecision] = Field(
         ..., description = "Factor affecting the Mode choice of the employee"
     )
@@ -1313,7 +1620,7 @@ class Employee(Respondent):
         # Validate using SkipLogicValidator
         errors, severity_levels, num_errors = skip_logic_validator.validate("Employee", values.dict())
         # Update validation fields
-        values.valid_record = len(errors) == 0
+        #values.valid_record = len(errors) == 0
         values.validation_error = errors
         values.validation_severity = cls.determine_severity(severity_levels)
         values.validation_num_errors = num_errors
@@ -1357,14 +1664,6 @@ class AirPassenger(Respondent):
     True if respondent lives outside San Diego Region and is going home by ground transportation
     """
     
-    resident_visitor: NoneOrNan[e.ResidentVisitor] = Field(
-        ...,
-        description="Where the respondent resides in the airport service area most of the year",
-    )
-    """
-    Where the respondent resides in the airport service area most of the year.
-    """
-
     passenger_segment: NoneOrNan[e.PassengerSegment] = Field(
         ..., description="Segment of the air passenger: (Resident/Visitor and Arriving/Departing)"
     )
@@ -1376,6 +1675,13 @@ class AirPassenger(Respondent):
         ..., description = "True if the respondent is a qualified visitor")
     """
     True if the respondent is a qualified visitor.
+    """
+
+    is_sdia_home_airport: NoneOrNan[bool] = Field(
+        ..., description = "True if the respondent's home airport is SDIA"
+    )
+    """
+    True if the respondent's home airport is SDIA
     """
 
     country_of_residence: NoneOrNan[e.Country] = Field(
@@ -1392,41 +1698,6 @@ class AirPassenger(Respondent):
     )
     """
     State of residence for US and Mexico residents.
-    """
-    
-    home_location_city: NoneOrNanString[str] =  Field(
-        ..., description = "City of the home location of the respondent"
-    )
-    """
-    City of the home location of the respondent
-    """
-
-    home_location_state: NoneOrNanString[str] =  Field(
-        ..., description = "State of the home location of the respondent"
-    )
-    """
-    State of the home location of the respondent
-    """
-
-    home_location_zip: NoneOrNanString[Union[str,int]] =  Field(
-        ..., description = "ZIP of the home location of the respondent"
-    )
-    """
-    ZIP of the home location of the respondent
-    """
-
-    home_location_latitude: NoneOrNanString[Latitude] =  Field(
-        ..., description = "Latitude of the home location of the respondent"
-    )
-    """
-    Latitude of the home location of the respondent
-    """
-
-    home_location_longitude: NoneOrNanString[Longitude]=   Field(
-        ..., description = "Longitude of the home location of the respondent"
-    )
-    """
-    Longitude of the home location of the respondent
     """
 
     passenger_type: NoneOrNanString[e.PassengerType] = Field(
@@ -1480,7 +1751,7 @@ class AirPassenger(Respondent):
     Flight number of the respondent's flight.
     """
 
-    not_using_connecting: NoneOrNanString[bool] =  Field(
+    is_direct_flight: NoneOrNanString[bool] =  Field(
         ..., description = "True if the passenger did not use/is not using any connecting flights in their journey"
     )
     """
@@ -1523,6 +1794,33 @@ class AirPassenger(Respondent):
     Other (not listed) purpose of the respondent's flight
     """
 
+    resident_visitor_purpose: NoneOrNanString[e.ResidentVisitorPurpose] = Field(
+        ..., description = "Determines the resident/visitor classification based on the home airport status and flight purpose"
+    )
+    """
+    Determines the resident/visitor classification based on the home airport status and flight purpose
+    """
+
+
+    # @computed_field(
+    #     return_type = e.ResidentVisitorPurpose,
+    #     description = "Determines the resident/visitor classification based on the home airport status and flight purpose",
+    # )
+    # @property
+    # def resident_visitor_purpose(cls):
+    #     """
+    #     Determines the resident/visitor classification based on the home airport status and flight purpose.
+    #     """
+    #     if cls.is_sdia_home_airport == True and cls.flight_purpose in {e.FlightPurpose.BUSINESS_WORK, e.FlightPurpose.COMBINATION_BUSINESS_LEISURE}:
+    #         return e.ResidentVisitorPurpose.RESIDENT_BUSINESS
+    #     elif cls.is_sdia_home_airport == False:
+    #         return e.ResidentVisitorPurpose.RESIDENT_NON_BUSINESS
+    #     elif cls.flight_purpose in {e.FlightPurpose.BUSINESS_WORK, e.FlightPurpose.COMBINATION_BUSINESS_LEISURE}:
+    #         return e.ResidentVisitorPurpose.VISITOR_BUSINESS
+    #     else:
+    #         return e.ResidentVisitorPurpose.VISITOR_NON_BUSINESS
+
+
     checked_bags: NoneOrNan[e.CheckedBags] = Field(
         ..., description = "Number of checked bags"
     )
@@ -1536,7 +1834,15 @@ class AirPassenger(Respondent):
     """
     Number of carry-on bags.
     """
-    
+
+    number_of_nights: NoneOrNan[e.TravelDuration] = Field(
+        ..., description = "Number of nights the respondent will be visiting/away"
+    )
+    """
+    Number of nights the respondent will be visiting/away
+    """
+
+
     party_size_flight: NoneOrNanString[e.PartySize] = Field(
         ..., description = "Number of people flying with the respondent (count excludes the respondent)"
     )
@@ -1593,6 +1899,12 @@ class AirPassenger(Respondent):
     True if the traveling party includes a mobility impaired person
     """
 
+    party_composition_list: NoneOrNanString[str] = Field(
+        ..., description = "List of people in the traveling party"
+    )
+    """
+    List of people in the traveling party
+    """
 
 #Add here
     sdia_flight_frequency: NoneOrNan[e.SanFlightFrequency] = Field(
@@ -1602,7 +1914,7 @@ class AirPassenger(Respondent):
     Respondent's number of flights from SDIA in the past 12 months.
     """
 
-    sdia_previous_accessmode: NoneOrNan[e.SanFlightFrequency] = Field(
+    access_mode_frequency: NoneOrNan[e.SanFlightFrequency] = Field(
         ..., description = "Number of times respondent used revealed access modes for other SDIA airport access trips in the past 12 months"
     )
     """
@@ -1761,6 +2073,13 @@ class AirPassenger(Respondent):
     Other mode the respondent used for their trip to SDIA in the last 12 months.
     """
 
+    sdia_accessmode_split_list: NoneOrNanString[str] = Field(
+        ..., description = "List of modes used by the respondent for their trip to SDIA in the last 12 months"
+    )
+    """
+    List of modes used by the respondent for their trip to SDIA in the last 12 months.
+    """
+
     sdia_accessmode_decision: NoneOrNan[e.ModeDecision] = Field(
         ..., description = "Factor which affects mode choice, for respondents who do not always used the same mode"
     )
@@ -1907,6 +2226,13 @@ class AirPassenger(Respondent):
     """
     Other reason why the respondent did not use transit.
     """ 
+    
+    reasons_no_transit_list: NoneOrNanString[str] = Field(
+        ..., description = "List of reasons why the respondent did not use transit"
+    )
+    """
+    List of reasons why the respondent did not use transit.
+    """
 
     non_sdia_flight_frequency: NoneOrNan[e.OtherFlightAndTransitUseFrequency] = Field(
         ..., description = "Respondent's number of flights from airport other than SDIA in the past 12 months"
@@ -1920,6 +2246,13 @@ class AirPassenger(Respondent):
     )
     """
     Travel mode used to access other airports
+    """
+
+    other_airport_accessmode_grouped: NoneOrNanString[e.TravelModeGrouped] =  Field(
+        ..., description = "Grouped Travel mode used to access other airports"
+    )
+    """
+    Grouped Travel mode used to access other airports
     """
 
     airport_access_transit_use_elsewhere: NoneOrNanString[e.OtherFlightAndTransitUseFrequency] = Field(
@@ -1965,7 +2298,7 @@ class ArrivingAirPassenger(AirPassenger):
         """
         True if the previous flight origin was original and not a layover
         """
-        return cls.not_using_connecting
+        return cls.is_direct_flight
     
     flight_arrival_time: NoneOrNan[e.DepartTime] = Field(
         ..., description = "Time of flight arrival"
@@ -2007,7 +2340,7 @@ class DepartingAirPassenger(AirPassenger):
         True if the next flight destination is final and not a layover
         """
         if cls.passenger_type == e.PassengerType.DEPARTING:
-            return cls.not_using_connecting
+            return cls.is_direct_flight
         
     final_flight_destination: NoneOrNanString[str] = Field(
         ..., description = "Final destination of the flight for departing passengers"
@@ -2023,6 +2356,20 @@ class DepartingAirPassenger(AirPassenger):
     Time of flight departure.
     """
 
+    trip_start_time: NoneOrNan[e.DepartTime] = Field(
+        ..., description="Start time of the trip"
+    )
+    """
+    Start time of the trip.
+    """
+
+    trip_arrival_time: NoneOrNan[e.DepartTime] = Field(
+        ..., description="Arrival time of the trip"
+    )
+    """
+    Arrival time of the trip.
+    """
+    
 class Resident(Respondent):
     """
     Data Model for a Air Passenger who is a resident of the San Deigo Region. It includes attributes specific to a Resident.
@@ -2112,6 +2459,12 @@ class DepartingPassengerResident(DepartingAirPassenger, Resident):
     Mode that will be used in the reverse direction.
     """
 
+    reverse_mode_predicted_grouped: NoneOrNanString[e.TravelModeGrouped] = Field(
+        ..., description = "Grouped Mode that will be used in the reverse direction")
+    """
+    Grouped Mode that will be used in the reverse direction
+    """
+
     reverse_mode_predicted_other: NoneOrNanString[str] = Field(
         ..., description = "Mode (not listed) which will be used in the reverse direction"
     )
@@ -2124,7 +2477,7 @@ class DepartingPassengerResident(DepartingAirPassenger, Resident):
         # Validate using SkipLogicValidator
         errors, severity_levels, num_errors = skip_logic_validator.validate("DepartingpassengerResident", values.dict())
         # Update validation fields
-        values.valid_record = len(errors) == 0
+        #values.valid_record = len(errors) == 0
         values.validation_error = errors
         values.validation_severity = cls.determine_severity(severity_levels)
         values.validation_num_errors = num_errors
@@ -2153,6 +2506,25 @@ class DepartingPassengerVisitor(DepartingAirPassenger, Visitor):
     """
     Mode that was used in the reverse direction.
     """
+
+    reverse_mode_grouped: NoneOrNanString[e.TravelModeGrouped] = Field(
+        ..., description = "Grouped Mode that was used in the reverse direction")
+    """
+    Grouped Mode that was used in the reverse direction
+    """
+    reverse_mode_combined: NoneOrNanString[e.TravelModeGrouped] = Field(
+        ..., description = "Mode in the reverse direction")
+    """
+    Mode in the reverse direction.
+    """
+
+    reverse_mode_combined_other: NoneOrNanString[str] = Field(
+        ..., description = "Other mode in the reverse direction")
+    """
+    Other mode in the reverse direction.
+    """
+
+
     general_modes_used_visitor_taxi: NoneOrNanString[bool] = Field(
         ..., description = "True if the visitor used Taxi as a mode during their visit to the San Diego Region"
     )
@@ -2334,13 +2706,20 @@ class DepartingPassengerVisitor(DepartingAirPassenger, Visitor):
     """
     Other mode used by the visitor during their visit to the San Diego Region.
     """
-    
+
+    general_modes_used_visitor_list: NoneOrNanString[str] = Field(
+        ..., description = "List of modes used by the visitor during their visit to the San Diego Region"
+    )
+    """
+    List of modes used by the visitor during their visit to the San Diego Region
+    """
+
     @model_validator(mode="after")
     def validate_record(cls, values):
         # Validate using SkipLogicValidator
         errors, severity_levels, num_errors = skip_logic_validator.validate("DepartingPassengerVisitor", values.dict())
         # Update validation fields
-        values.valid_record = len(errors) == 0
+        #values.valid_record = len(errors) == 0
         values.validation_error = errors
         values.validation_severity = cls.determine_severity(severity_levels)
         values.validation_num_errors = num_errors
@@ -2374,7 +2753,7 @@ class ArrivingPassengerResident(ArrivingAirPassenger, Resident):
         # Validate using SkipLogicValidator
         errors, severity_levels, num_errors = skip_logic_validator.validate("ArrivingPassengerResident", values.dict())
         # Update validation fields
-        values.valid_record = len(errors) == 0
+        #values.valid_record = len(errors) == 0
         values.validation_error = errors
         values.validation_severity = cls.determine_severity(severity_levels)
         values.validation_num_errors = num_errors
@@ -2433,7 +2812,7 @@ class ArrivingPassengerVisitor(ArrivingAirPassenger, Visitor):
         errors, severity_levels, num_errors = skip_logic_validator.validate("ArrivingPassengerVisitor", values.dict())
         
         # Update validation fields
-        values.valid_record = len(errors) == 0
+        #values.valid_record = len(errors) == 0
         values.validation_error = errors
         values.validation_severity = cls.determine_severity(severity_levels)
         values.validation_num_errors = num_errors

@@ -169,6 +169,7 @@ data/interim/survey_expanded_v3_all.csv
 data/interim/survey_expanded_v2_depart.csv
 data/interim/survey_expanded_v3_depart.csv
 data/processed/data_model_output.csv
+data/processed/clean_data_model_output.csv
 data/processed/failed_records.csv
 .Rproj.user
 data/external/etc/od_20241015_sandag_airport_pilot_4.xlsx

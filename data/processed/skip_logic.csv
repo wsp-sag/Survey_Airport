@@ -2,10 +2,10 @@
 DepartingPassengerVisitor,convention_center,1,missing,convention_center_activity,,Non-Critical
 ArrivingPassengerVisitor,convention_center,1,missing,convention_center_activity,,Non-Critical
 Employee,,,critical,number_commute_days,,Non-Critical
-ArrivingPassengerResident,party_size_flight,"1,2,3,4,5,6,7",missing,party_size_ground_access,,Critical
-ArrivingPassengerVisitor,party_size_flight,"1,2,3,4,5,6,7",missing,party_size_ground_access,,Critical
-DepartingPassengerResident,party_size_flight,"1,2,3,4,5,6,7",missing,party_size_ground_access,,Critical
-DepartingPassengerVisitor,party_size_flight,"1,2,3,4,5,6,7",missing,party_size_ground_access,,Critical
+ArrivingPassengerResident,party_size_flight,"1,2,3,4,5,6,7",missing,party_size_ground_access,,Non-Critical
+ArrivingPassengerVisitor,party_size_flight,"1,2,3,4,5,6,7",missing,party_size_ground_access,,Non-Critical
+DepartingPassengerResident,party_size_flight,"1,2,3,4,5,6,7",missing,party_size_ground_access,,Non-Critical
+DepartingPassengerVisitor,party_size_flight,"1,2,3,4,5,6,7",missing,party_size_ground_access,,Non-Critical
 ArrivingPassengerResident,,,critical,party_size_flight,,Critical
 ArrivingPassengerVisitor,,,critical,party_size_flight,,Critical
 DepartingPassengerResident,,,critical,party_size_flight,,Critical
@@ -15,6 +15,14 @@ Trip,inbound_or_outbound,2,missing,destination_latitude,,Critical
 Trip,inbound_or_outbound,2,missing,destination_longitude,,Critical
 Trip,inbound_or_outbound,1,missing,origin_latitude,,Critical
 Trip,inbound_or_outbound,1,missing,origin_longitude,,Critical
+Employee,,,critical,shift_start_time,,Non-Critical
+Employee,,,critical,shift_end_time,,Non-Critical
+Employee,,,critical,trip_start_time,,Non-Critical
+Employee,,,critical,trip_arrival_time,,Non-Critical
+DepartingPassengerResident,,,critical,trip_arrival_time,,Non-Critical
+DepartingPassengerResident,,,critical,trip_arrival_time,,Non-Critical
+DepartingPassengerVisitor,,,critical,trip_arrival_time,,Non-Critical
+DepartingPassengerVisitor,,,critical,trip_arrival_time,,Non-Critical
 DepartingPassengerVisitor,,,critical,reverse_mode,,Non-Critical
 ArrivingPassengerResident,,,critical,reverse_mode,,Non-Critical
 ArrivingPassengerVisitor,,,critical,reverse_mode_predicted,,Non-Critical
@@ -39,3 +47,15 @@ DepartingPassengerResident,,,critical,general_use_transit_resident,,Non-Critical
 ArrivingPassengerVisitor,,,critical,general_use_transit_visitor_home,,Non-Critical
 DepartingPassengerVisitor,,,critical,general_use_transit_visitor_home,,Non-Critical
 DepartingPassengerResident,main_mode ,"1,2,3,4,5,6,7,8,9,10,11,15,16,17,18,21,22,23,24,25,26,27,28,30",missing,car_available,,Non-Critical
+DepartingPassengerVisitor,,,critical,nights_visited,,Non-Critical
+ArrivingPassengerResident,,,critical,nights_away,,Non-Critical
+ArrivingPassengerVisitor,,,critical,nights_visited,,Non-Critical
+DepartingPassengerResident,,,critical,nights_away,,Non-Critical
+DepartingPassengerVisitor,,,value,resident_visitor,1,Critical
+ArrivingPassengerVisitor,,,value,resident_visitor,1,Critical
+ArrivingPassengerResident,,,critical,home_location_latitude,,Non-Critical
+DepartingPassengerResident,,,critical,home_location_latitude,,Non-Critical
+Employee,,,critical,home_location_latitude,,Non-Critical
+ArrivingPassengerResident,,,critical,home_location_longitude,,Non-Critical
+DepartingPassengerResident,,,critical,home_location_longitude,,Non-Critical
+Employee,,,critical,home_location_longitude,,Non-Critical

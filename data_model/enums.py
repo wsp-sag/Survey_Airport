@@ -55,6 +55,16 @@ class PassengerSegment(IntEnum):
     RESIDENT_DEPARTING = 2
     VISITOR_ARRIVING = 3
     VISITOR_DEPARTING = 4
+    
+
+class ResidentVisitorPurpose(IntEnum):
+    """
+    Integer Mapping for resident/visitor and flight purpose segmentation
+    """
+    RESIDENT_BUSINESS = 1
+    RESIDENT_NON_BUSINESS = 2
+    VISITOR_BUSINESS = 3
+    VISITOR_NON_BUSINESS = 4
 
 
 class ResidentVisitorGeneral(IntEnum):
@@ -696,7 +706,8 @@ class Employers(IntEnum):
     WESTJET = 75
     SDCRAA_SDIA = 76
     FLAGSHIP = 77	
-    OTHER_SEPCIFY = 98	
+    HMS_HOST = 78
+    OTHER_SPECIFY = 98	
 
 
 class Occupations(IntEnum):
@@ -729,6 +740,17 @@ class Occupations(IntEnum):
     REFUSED = 99
 
 
+class OccupationDetail(IntEnum):
+    """
+    Integer mapping for the occupation details for an airport employee
+    """
+    WORK_NEAR_PASSENGERS = 1
+    WORK_IN_OFFICE = 2
+    WORK_ELSEWHERE = 3
+    OTHER = 98
+    REFUSED = 99
+
+
 class HoursWorked(IntEnum):
     """
     Integer mapping for number of hours employee works at SAN
@@ -752,7 +774,7 @@ class CommuteDays(IntEnum):
     """
     Integer mapping for number of days employee commutes to SAN
     """
-
+    ZERO = 0
     ONE = 1
     TWO = 2
     THREE = 3
@@ -902,6 +924,26 @@ class TravelMode(IntEnum):
     REFUSED_NO_ANSWER = 99
 
 
+class TravelModeGrouped(IntEnum):
+    """
+    Integer mapping for consolidated modes
+    """
+    WALK = 1
+    WHEELCHAIR_OR_OTHER_MOBILITY_DEVICE = 2
+    MICROMOBILITY_SHARED = 3
+    MICROMOBILITY_PERSONAL = 4
+    RIDEHAIL_TAXI = 5
+    PUBLIC_TRANSPORTATION = 6
+    PERSONAL_CAR_DROPPED_OFF_PICKED_UP = 7
+    PERSONAL_CAR_PARKED = 8
+    SHARED_SHUTTLE_VAN = 9
+    BUS_992 = 10
+    AIRPORT_FLYER_SHUTTLE = 11
+    RENTAL_CAR = 12
+    OTHER = 98
+    REFUSED_NO_ANSWER = 99
+
+
 class BusRoutes(Enum):
     """
     Enum Mappings for MTS Bus Routes
@@ -978,7 +1020,7 @@ class ParkingCostFrequency(IntEnum):
     MONTHLY = 2
     DAILY = 3
     HOURLY = 4
-    OTHER_SEPCIFY = 98
+    OTHER_SPECIFY = 98
     REFUSED = 99
 
 
@@ -1161,6 +1203,7 @@ class HouseholdIncome(IntEnum):
     PREFER_NOT_TO_SAY = 14  
     BETWEEN_200_299K = 15
     MORE_THAN_300K = 16
+    MORE_THAN_150K = 17
     OTHER = 98
     REFUSED = 99
 
@@ -1207,7 +1250,62 @@ class SurveyLanguage(Enum):
     REFUSED = 99
 
 class YesNoType(IntEnum):
+    """
+    Enum for Yes or No Type Questions
+    """
     YES = 1
     NO = 2
     OTHER = 98
     REFUSED = 99
+
+class SPImportance(IntEnum):
+    """
+    Importance levels for Stated Preference Responses
+    """
+    NOT_IMPORTANT = 1
+    SLIGHTLY_IMPORTANT = 2
+    IMPORTANT = 3
+    VERY_IMPORTANT = 4
+    EXTREMELY_IMPORTANT = 5
+
+class SPWillingToWalkTime(IntEnum):
+    """
+    Willingness to walk time levels for Stated Preference Responses
+    """
+    LESS_THAN_TWO_MINS = 1
+    LESS_THAN_FIVE_MINS = 2
+    LESS_THAN_FIFTEEN_MINS = 3
+    LESS_THAN_THIRTY_MINS = 4
+    NOT_INTERESTED = 5
+
+class SPNumTransfers(IntEnum):
+    """
+    Number of transfers levels for Stated Preference Responses
+    """
+    NONE = 0
+    ONE = 1
+    TWO = 2
+    THREE_OR_MORE = 3
+    NOT_WILLING_TO_TRANSFER = 4
+
+class SPLikelihood(IntEnum):
+    """
+    Likelihood levels for Stated Preference Responses
+    """
+    HIGHLY_UNLIKELY = 1
+    UNLIKELY = 2
+    NEUTRAL_DONT_KNOW = 3
+    LIKELY = 4
+    VERY_LIKELY = 5
+
+class SPDropoffType(IntEnum):
+    """
+    Represents the type of person who dropped off the respondent at the airport
+    """
+    SPOUSE_PARTNER = 1
+    PARENT = 2
+    CHILD = 3
+    OTHER_RELATIVE = 4
+    FRIEND = 5
+    COLLEAGUE = 6
+    OTHER = 7
